@@ -51,9 +51,13 @@ Although these rules are tedious, I believe them the lesser of evils and much si
 
 An order of magnitude increase in performance, an order of magnitude decrease in memory usage, and an order of magnitude decrease in bundle size<sup>11</sup>.
 
+## Hang on, I can't use any of my favourite UI components?
+
+No, and that is probably the best reason to put forward not to use metalui. Having said that, the amount of time we've spend customizing and battling some UI component library, and still not got exactly what we want is probably greater than building it from scratch. In my prototype I have used plain HTML and CSS and, with the invention of flexbox and css variables, creating some of the more complex components was actually quite easy. And because all the dependencies have been culled, the UI layer is extremly thin and very transparent.
+
 ## Before I read the footnotes, where are the docs?
 
-[Docs](./documentation.md)
+[Here is the documentation](./documentation.md)
 
 ## Ah, here are the footnotes
 
