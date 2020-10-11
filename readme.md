@@ -47,13 +47,13 @@ To avoid needless rerenders, a component must carefully choose what updates to o
 
 Although these rules are tedious, I believe them the lesser of evils and much simpler than all the rules of other frameworks.
 
-## Hmm, we'll se. Bottom line here?
+## Hmm, we'll see. Bottom line here?
 
 An order of magnitude increase in performance, an order of magnitude decrease in memory usage, and an order of magnitude decrease in bundle size<sup>11</sup>.
 
 ## Before I read the footnotes, where are the docs?
 
-Docs
+[Docs](./documentation.md)
 
 ## Ah, here are the footnotes
 
@@ -77,4 +77,4 @@ Docs
 
 <sup>10</sup> not the more useful value equality
 
-<sup>11</sup> a prototype for a significant portion of a complex, stateful application
+<sup>11</sup> a prototype for a significant portion of a complex, stateful application, not a toy example
