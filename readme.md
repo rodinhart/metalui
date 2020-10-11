@@ -37,7 +37,19 @@ Metalui embraces statefulness by conceptualizing a component as a stateful, inde
 
 ## You can probably explain that better, but what is the upshot?
 
-No need for caching, or a virtual DOM. Because the arguments to a component function are no longer held hostage by the false premise they are declarative/pure, components are free to receive static data, dynamic data, services or any other context in a normal<sup>8</sup> way.
+No need for caching, or a virtual DOM, or component lifecycle. Because the arguments to a component function are no longer held hostage by the false premise they are declarative/pure, components are free to receive static data, dynamic data, services or any other context in a normal<sup>8</sup> way. You don't even have to use observables, you could use message passing, or a message queue, or anything else.
+
+## But what are the costs?
+
+Because components are stateful and independent, they can receive updates to data even though the component is no longer required. Imagine a component that is only displayed when there are selected items: when the selected items are cleared the component might receive this update before its parent. Therefore, the component must check that there are selected items, and exit if there are not<sup>9</sup>. Subsequently the parent will render and destroy its children.
+
+To avoid needless rerenders, a component must carefully choose what updates to observe on the data. You have to do this in any framework; in React it is done by careful arrangement of reference<sup>10</sup> equality for props, and memoization. Metalui just makes the need and implementation explicit.
+
+Although these rules are tedious, I believe them the lesser of evils and much simpler than all the rules of other frameworks.
+
+## Hmm, we'll se. Bottom line here?
+
+An order of magnitude increase in performance, an order of magnitude decrease in memory usage, and an order of magnitude decrease in bundle size<sup>11</sup>.
 
 ## Ah, here are the footnotes
 
@@ -56,3 +68,9 @@ No need for caching, or a virtual DOM. Because the arguments to a component func
 <sup>7</sup> more like smalltalk, but components are still functions
 
 <sup>8</sup> no hooks or algebraic effects
+
+<sup>9</sup> see the docs for concrete examples
+
+<sup>10</sup> not the more useful value equality
+
+<sup>11</sup> a prototype for a significant portion of a complex, stateful application
