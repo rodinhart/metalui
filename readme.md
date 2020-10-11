@@ -31,7 +31,7 @@ Those observables bury the concept of time under trilobites of obtuse API. Metal
 
 ## ...that can't be it
 
-The DOM is fundamentally stateful, and calling the markup declarative is unhelpful<sup>6</sup>. The first render versus subsequent renders are very different, exemplified by scroll position, text input carret and selection, dropdown state and HTML canvas.
+The DOM is fundamentally stateful, and calling the markup declarative is unhelpful<sup>6</sup>. The first render versus subsequent renders are very different, exemplified by scroll position, text input carret and selection, dropdown list state and HTML canvas.
 
 Metalui embraces statefulness by conceptualizing a component as a stateful, independent object<sup>7</sup> that can send signals about data to other components.
 
@@ -50,6 +50,10 @@ Although these rules are tedious, I believe them the lesser of evils and much si
 ## Hmm, we'll se. Bottom line here?
 
 An order of magnitude increase in performance, an order of magnitude decrease in memory usage, and an order of magnitude decrease in bundle size<sup>11</sup>.
+
+## Before I read the footnotes, where are the docs?
+
+Docs
 
 ## Ah, here are the footnotes
 
