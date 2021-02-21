@@ -12,7 +12,7 @@ An awful lot, but most importantly, the render function in React is sync<sup>1</
 
 ## So?
 
-When the app in question has hundreds of megabytes of data with complex dependencies and updates, the overhead of managing the cache and the pressure on the garbage collector has a huge impact on the overall performance. And it is one of the most difficult problems in computer science<sup>3</sup>.
+When the app in question has hundreds of megabytes of mutable data with complex dependencies and updates, the overhead of managing the cache and the pressure on the garbage collector has a huge impact on the overall performance. And it is one of the most difficult problems in computer science<sup>3</sup>.
 
 ## What about other frameworks?
 
