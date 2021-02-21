@@ -1,0 +1,14 @@
+{
+  "name": "metalui",
+  "version": "0.1.0",
+  "main": "index.ts",
+  "scripts": {
+    "clean": "rmdir dist /s /q",
+    "build": "tsc"
+  },
+  "author": "Rodin",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.1.5"
+  }
+}
