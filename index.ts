@@ -1,2 +1,2 @@
-export * from "./src/metalui"
-export * from "./src/Observable"
+export * from "./src/metalui.js"
+export * from "./src/Observable.js"
