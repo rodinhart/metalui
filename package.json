@@ -1,7 +1,7 @@
 {
   "name": "metalui",
   "version": "0.1.0",
-  "main": "dist/index.js",
+  "main": "index.ts",
   "module": "dist/index.js",
   "scripts": {
     "clean": "rmdir dist /s /q",
