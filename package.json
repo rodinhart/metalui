@@ -1,15 +1,18 @@
 {
   "name": "metalui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "index.ts",
   "module": "dist/index.js",
   "scripts": {
     "clean": "rmdir dist /s /q",
-    "build": "tsc"
+    "build": "webpack"
   },
   "author": "Rodin",
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^4.1.5"
+    "ts-loader": "^8.0.17",
+    "typescript": "^4.2.2",
+    "webpack": "^5.24.2",
+    "webpack-cli": "^4.5.0"
   }
 }

@@ -1,4 +1,4 @@
-import { createUid, map, sleep, toObject } from "./lang.js"
+import { createUid, map, sleep, toObject } from "./lang"
 
 declare const glob: Record<string, Record<string, (e: Event) => void>>
 

@@ -1,4 +1,4 @@
-import { Lens } from "./lenses.js";
+import { Lens } from "./lenses";
 export declare class Observable<T> {
     value: T;
     private watchers;
