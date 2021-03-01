@@ -1,8 +1,8 @@
 {
   "name": "metalui",
   "version": "0.1.1",
-  "main": "index.ts",
-  "module": "dist/index.js",
+  "main": "dist/main.js",
+  "module": "src/main.ts",
   "scripts": {
     "clean": "rmdir dist /s /q",
     "build": "webpack"
