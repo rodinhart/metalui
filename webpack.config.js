@@ -10,6 +10,10 @@ module.exports = {
       },
     ],
   },
+  output: {
+    library: "metalui",
+    libraryTarget: "umd",
+  },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
   },
