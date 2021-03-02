@@ -18,8 +18,8 @@ export type Markup =
 // JSONML to XML string
 export const toxml = (
   el: Element,
-  gkey: string,
-  ids: Record<string, (e: Event) => void>
+  gkey: string = "GLOBAL",
+  ids: Record<string, (e: Event) => void> = {}
 ): string => {
   if (Array.isArray(el)) {
     const [name, props, ...children] = el

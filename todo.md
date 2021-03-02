@@ -1,0 +1,5 @@
+- escape strings to prevent injection attacks
+- test/implement component "dismount" after `for await of`
+- allow preventDefault on events
+  - should already work
+  - a event wrapper library for cross browser compatibility?
