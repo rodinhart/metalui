@@ -494,3 +494,58 @@ document.getElementById("app").innerHTML = toxml(
   await render([NumberList, { numbers }])
 )
 ```
+
+React
+
+```jsx
+function NumberList(props) {
+  const numbers = props.numbers
+  return (
+    <ul>
+      {numbers.map((number) => (
+        <ListItem key={number.toString()} value={number} />
+      ))}
+    </ul>
+  )
+}
+```
+
+metalui
+
+```js
+const NumberList = (props) => {
+  const numbers = props.numbers
+
+  return ["ul", {}, ...numbers.map((number) => ["li", {}, number])]
+}
+
+const numbers = [1, 2, 3, 4, 5]
+
+document.getElementById("app").innerHTML = toxml(
+  await render([NumberList, { numbers }])
+)
+```
+
+## 11. Composition vs Inheritance
+
+React
+
+```jsx
+function FancyBorder(props) {
+  return (
+    <div className={"FancyBorder FancyBorder-" + props.color}>
+      {props.children}
+    </div>
+  )
+}
+```
+
+metalui
+
+```js
+const FancyBorder = (props) => [
+  "div",
+  { class: "FancyBorder FancyBorder-" + props.color },
+  ...props.children,
+]
+```
