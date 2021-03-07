@@ -58,6 +58,7 @@ No, and that is probably the best reason to put forward not to use metalui. Havi
 ## Before I read the footnotes, where are the docs?
 
 [Here is the documentation](./documentation.md)
+
 [React examples as metalui](./react-examples.md)
 
 ## Ah, here are the footnotes

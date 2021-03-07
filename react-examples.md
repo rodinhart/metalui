@@ -549,3 +549,165 @@ const FancyBorder = (props) => [
   ...props.children,
 ]
 ```
+
+# Hooks
+
+## Introducing Hooks
+
+React
+
+```jsx
+function Example() {
+  // Declare a new state variable, which we'll call "count"
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>Click me</button>
+    </div>
+  )
+}
+```
+
+metalui
+
+```js
+const Example = async function* () {
+  const countOb = new Observable(0)
+
+  for await (const count of countOb) {
+    yield [
+      "div",
+      {},
+      ["p", {}, `You clicked ${count} times`],
+      [
+        "button",
+        { onclick: () => countOb.notify((count) => count + 1) },
+        "Click me",
+      ],
+    ]
+  }
+}
+```
+
+React
+
+```jsx
+function Example() {
+  const [count, setCount] = useState(0)
+
+  // Similar to componentDidMount and componentDidUpdate:
+  useEffect(() => {
+    // Update the document title using the browser API
+    document.title = `You clicked ${count} times`
+  })
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>Click me</button>
+    </div>
+  )
+}
+```
+
+metalui
+
+```js
+const Example = async function* () {
+  const countOb = new Observable(0)
+
+  for await (const count of countOb) {
+    yield [
+      "div",
+      {},
+      ["p", {}, `You clicked ${count} times`],
+      [
+        "button",
+        { onclick: () => countOb.notify((count) => count + 1) },
+        "Click me",
+      ],
+    ]
+
+    document.title = `You clicked ${count} times`
+  }
+}
+```
+
+## Hooks API Reference
+
+### useContext
+
+React
+
+```jsx
+const themes = {
+  light: {
+    foreground: "#000000",
+    background: "#eeeeee",
+  },
+  dark: {
+    foreground: "#ffffff",
+    background: "#222222",
+  },
+}
+
+const ThemeContext = React.createContext(themes.light)
+
+function App() {
+  return (
+    <ThemeContext.Provider value={themes.dark}>
+      <Toolbar />
+    </ThemeContext.Provider>
+  )
+}
+
+function Toolbar(props) {
+  return (
+    <div>
+      <ThemedButton />
+    </div>
+  )
+}
+
+function ThemedButton() {
+  const theme = useContext(ThemeContext)
+  return (
+    <button style={{ background: theme.background, color: theme.foreground }}>
+      I am styled by theme context!
+    </button>
+  )
+}
+```
+
+metalui
+
+```js
+const themes = {
+  light: {
+    foreground: "#000000",
+    background: "#eeeeee",
+  },
+  dark: {
+    foreground: "#ffffff",
+    background: "#222222",
+  },
+}
+
+// Put themeOb in whatever global context you are using
+const themeOb = new Observable(themes.dark)
+
+const Toolbar = () => ["div", {}, [ThemedButton, {}]]
+
+const ThemedButton = async function* () {
+  for await (const theme of themeOb) {
+    yield [
+      "button",
+      { style: `background: ${theme.background}; color: ${theme.foreground};` },
+      ,
+      "I am styled by theme context!",
+    ]
+  }
+}
+```
