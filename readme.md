@@ -61,6 +61,8 @@ No, and that is probably the best reason to put forward not to use metalui. Havi
 
 [React examples as metalui](./react-examples.md)
 
+[Crank.js examples as metalui](./crankjs-examples.md)
+
 ## Ah, here are the footnotes
 
 <sup>1</sup> or blocking and non-blocking if you like
