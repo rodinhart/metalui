@@ -1,6 +1,6 @@
 import { Component, Markup, Props } from "metalui"
 
-const createElement = (
+export const createElement = (
   tag: string | Component,
   props: Props | undefined,
   ...children: Markup[] | Markup[][]
@@ -11,7 +11,3 @@ const createElement = (
     Array.isArray(x) ? (x as Markup[]) : [x]
   ),
 ]
-
-export default {
-  createElement,
-}
