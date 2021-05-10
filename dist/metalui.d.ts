@@ -1,4 +1,4 @@
-declare type Props = Record<string, any>;
+export declare type Props = Record<string, any>;
 declare type Element = null | boolean | number | string | [string, Props, ...Element[]];
 export declare type Component = ((props: Props) => Markup) | ((props: Props) => AsyncGenerator<Markup, void, HTMLElement>);
 export declare type Markup = null | boolean | number | string | [string | Component, Props, ...Markup[]];

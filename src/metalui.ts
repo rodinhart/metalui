@@ -3,7 +3,7 @@ import { createUid, map, sleep, toObject } from "./lang"
 declare const glob: Record<string, Record<string, (e: Event) => void>>
 
 // e.g. AppProps, PropertyProps etc?
-type Props = Record<string, any>
+export type Props = Record<string, any>
 type Element = null | boolean | number | string | [string, Props, ...Element[]]
 export type Component =
   | ((props: Props) => Markup)
