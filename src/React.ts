@@ -7,7 +7,9 @@ export const createElement = (
 ): Markup => [
   tag,
   props || {},
-  ...children.flatMap((x: Markup | Markup[]) =>
-    Array.isArray(x) ? (x as Markup[]) : [x]
-  ),
+  ...children
+    .flatMap((x) =>
+      Array.isArray(x) && x.every((y) => Array.isArray(y)) ? x : [x]
+    )
+    .map((x) => (Array.isArray(x) ? createElement(...x) : x)),
 ]
