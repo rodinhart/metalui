@@ -3,7 +3,7 @@ import { Lens, view } from "./lenses"
 export class Observable<T /* extends Extract<(val: T) => T, any> */> {
   value: T
   private watchers: Array<(value: unknown) => void>;
-  [Symbol.asyncIterator]: () => AsyncGenerator<T, never, unknown>
+  [Symbol.asyncIterator]: () => AsyncGenerator<T, void, unknown>
 
   constructor(init: T) {
     this.value = init

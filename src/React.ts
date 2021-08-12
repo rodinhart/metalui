@@ -8,8 +8,12 @@ export const createElement = (
   tag,
   props || {},
   ...children
-    .flatMap((x) =>
-      Array.isArray(x) && x.every((y) => Array.isArray(y)) ? x : [x]
-    )
+    .flatMap((x) => {
+      if (Array.isArray(x) && x.every((y) => Array.isArray(y))) {
+        return x as Markup[]
+      } else {
+        return [x] as Markup[]
+      }
+    })
     .map((x) => (Array.isArray(x) ? createElement(...x) : x)),
 ]
