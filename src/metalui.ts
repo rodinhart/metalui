@@ -5,15 +5,15 @@ declare const glob: Record<string, Record<string, (e: Event) => void>>
 // e.g. AppProps, PropertyProps etc?
 export type Props = Record<string, any>
 type Element = null | boolean | number | string | [string, Props, ...Element[]]
-export type Component =
-  | ((props: Props) => Markup)
-  | ((props: Props) => AsyncGenerator<Markup, void, HTMLElement>)
-export type Markup =
+export type Component<T extends Props> =
+  | ((props: T) => Markup<any>)
+  | ((props: T) => AsyncGenerator<Markup<any>, void, HTMLElement>)
+export type Markup<T> =
   | null
   | boolean
   | number
   | string
-  | [string | Component, Props, ...Markup[]]
+  | [string | Component<T>, T, ...Markup<any>[]]
 
 // JSONML to XML string
 export const toxml = (
@@ -47,7 +47,7 @@ export const toxml = (
   return el === null ? "" : String(el)
 }
 
-export const render = async (markup: Markup): Promise<Element> => {
+export const render = async (markup: Markup<any>): Promise<Element> => {
   if (Array.isArray(markup)) {
     const [tag, props, ...children] = markup
 

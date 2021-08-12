@@ -101,6 +101,8 @@ const QuoteOfTheDay = async function* () {
     ["a", { href: quote.url }, quote.author],
   ]
 }
+
+document.body.innerHTML = toxml(await render([QuoteOfTheDay, {}]))
 ```
 
 # Components
