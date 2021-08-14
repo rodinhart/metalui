@@ -1,3 +1,5 @@
+- react useContext example
+  - can we make context non-global?
 - escape strings to prevent injection attacks
 - test/implement component "dismount" after `for await of`
 - allow preventDefault on events
@@ -5,3 +7,4 @@
   - a event wrapper library for cross browser compatibility?
 - forms (9. Forms)
 - await notify?
+- properly fix types for markup etc

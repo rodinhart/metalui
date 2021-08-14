@@ -47,26 +47,40 @@ export const toxml = (
   return el === null ? "" : String(el)
 }
 
-export const render = async (markup: Markup<any>): Promise<Element> => {
+export const render = async (
+  markup: Markup<any>,
+  context: Record<string, any> = {}
+): Promise<Element> => {
   if (Array.isArray(markup)) {
     const [tag, props, ...children] = markup
 
+    const newContext = Object.entries(props).reduce<Record<string, any>>(
+      (r, [key, val]) => {
+        if (key[0] === "$") {
+          r[key] = val
+        }
+
+        return r
+      },
+      { ...context }
+    )
+
     const mapped: Element[] = []
     for (const child of children) {
-      mapped.push(await render(child))
+      mapped.push(await render(child, newContext))
     }
 
     if (typeof tag === "string") {
       return [tag, props, ...mapped]
     }
 
-    const iterator = tag({ ...props, children: mapped })
+    const iterator = tag({ ...newContext, ...props, children: mapped })
     if (
       iterator === null ||
       typeof iterator !== "object" ||
       Array.isArray(iterator)
     ) {
-      return await render(iterator)
+      return await render(iterator, newContext)
     }
 
     let id: string
@@ -85,7 +99,7 @@ export const render = async (markup: Markup<any>): Promise<Element> => {
         return
       }
 
-      const element = (await render(next.value)) as [
+      const element = (await render(next.value, newContext)) as [
         string,
         Props,
         ...Element[]
@@ -103,7 +117,11 @@ export const render = async (markup: Markup<any>): Promise<Element> => {
       return null
     }
 
-    const element = (await render(next.value)) as [string, Props, ...Element[]]
+    const element = (await render(next.value, newContext)) as [
+      string,
+      Props,
+      ...Element[]
+    ]
     const [, props2] = element
     id = props2.id || createUid()
     props2.id = id // don't reassign

@@ -8,28 +8,42 @@ import {
 } from "../dist/index"
 
 const main = async () => {
-  const Clock = async function* () {
-    const nowOb = new Observable(new Date())
+  const themes = {
+    light: {
+      foreground: "#000000",
+      background: "#eeeeee",
+    },
+    dark: {
+      foreground: "#ffffff",
+      background: "#222222",
+    },
+  }
 
-    const timerID = setInterval(() => {
-      nowOb.notify(new Date())
-    }, 1000)
+  // Put themeOb in whatever global context you are using
+  const themeOb = new Observable(themes.dark)
 
-    try {
-      for await (const now of nowOb) {
-        yield [
-          "div",
-          {},
-          ["h1", {}, "Hello, world!"],
-          ["h2", {}, `It is ${now.toLocaleTimeString()}.`],
-        ]
-      }
-    } finally {
-      clearInterval(timerID)
+  const Toolbar = () => ["div", {}, [ThemedButton, {}]]
+
+  const ThemedButton = async function* ({ $themeOb }) {
+    for await (const theme of $themeOb) {
+      yield [
+        "button",
+        {
+          style: `background: ${theme.background}; color: ${theme.foreground};`,
+        },
+        "I am styled by theme context!",
+      ]
     }
   }
 
-  document.body.innerHTML = toxml(await render([Clock, {}]))
+  document.body.innerHTML = toxml(
+    await render([
+      Toolbar,
+      {
+        $themeOb: themeOb,
+      },
+    ])
+  )
 }
 
 main()

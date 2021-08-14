@@ -702,12 +702,13 @@ const themeOb = new Observable(themes.dark)
 
 const Toolbar = () => ["div", {}, [ThemedButton, {}]]
 
-const ThemedButton = async function* () {
-  for await (const theme of themeOb) {
+const ThemedButton = async function* ({ $themeOb }) {
+  for await (const theme of $themeOb) {
     yield [
       "button",
-      { style: `background: ${theme.background}; color: ${theme.foreground};` },
-      ,
+      {
+        style: `background: ${theme.background}; color: ${theme.foreground};`,
+      },
       "I am styled by theme context!",
     ]
   }
