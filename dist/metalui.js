@@ -1,4 +1,11 @@
 import { createUid, map, sleep, toObject } from "./lang";
+const escapeHtml = (() => {
+    const e = document.createElement("div");
+    return (s) => {
+        e.innerText = s;
+        return e.innerHTML;
+    };
+})();
 // JSONML to XML string
 export const toxml = (el, gkey = "GLOBAL", ids = {}) => {
     if (Array.isArray(el)) {
@@ -19,7 +26,7 @@ export const toxml = (el, gkey = "GLOBAL", ids = {}) => {
             .map(([key, val]) => (val !== undefined ? `${key}="${val}"` : key))
             .join(" ")}>${mapped.join("")}</${name}>`;
     }
-    return el === null ? "" : String(el);
+    return el === null ? "" : escapeHtml(String(el));
 };
 export const render = async (markup, context = {}) => {
     if (Array.isArray(markup)) {

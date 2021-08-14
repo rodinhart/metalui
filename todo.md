@@ -1,5 +1,7 @@
 - react useContext example
   - can we make context non-global?
+  - $ means context
+  - document this
 - escape strings to prevent injection attacks
 - test/implement component "dismount" after `for await of`
 - allow preventDefault on events

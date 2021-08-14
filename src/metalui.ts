@@ -1,5 +1,15 @@
 import { createUid, map, sleep, toObject } from "./lang"
 
+const escapeHtml = (() => {
+  const e = document.createElement("div")
+
+  return (s: string) => {
+    e.innerText = s
+
+    return e.innerHTML
+  }
+})()
+
 declare const glob: Record<string, Record<string, (e: Event) => void>>
 
 // e.g. AppProps, PropertyProps etc?
@@ -44,7 +54,7 @@ export const toxml = (
       .join(" ")}>${mapped.join("")}</${name}>`
   }
 
-  return el === null ? "" : String(el)
+  return el === null ? "" : escapeHtml(String(el))
 }
 
 export const render = async (
