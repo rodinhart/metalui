@@ -2,6 +2,7 @@
   - should already work
   - a event wrapper library for cross browser compatibility?
 - forms (9. Forms)
+  - rerendering at wrong level
 - fix glob
 - await notify?
 - properly fix types for markup etc
