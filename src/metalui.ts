@@ -121,9 +121,9 @@ export const render = async (
       }
 
       const [tag, props, ...children] = element
-      if (tag !== node.tagName) {
+      if (tag !== node.tagName.toLowerCase()) {
         throw new Error(
-          `Expect component to rerender with tag ${node.tagName}, not tag ${tag}`
+          `Expect component to rerender with tag ${node.tagName.toLowerCase()}, not tag ${tag}`
         )
       }
 

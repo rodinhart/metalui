@@ -69,8 +69,8 @@ export const render = async (markup, context = {}) => {
                 throw new Error(`Expect component to rerender a tag, not ${element}`);
             }
             const [tag, props, ...children] = element;
-            if (tag !== node.tagName) {
-                throw new Error(`Expect component to rerender with tag ${node.tagName}, not tag ${tag}`);
+            if (tag !== node.tagName.toLowerCase()) {
+                throw new Error(`Expect component to rerender with tag ${node.tagName.toLowerCase()}, not tag ${tag}`);
             }
             Object.assign(node, props);
             const ids = {};

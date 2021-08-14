@@ -528,6 +528,96 @@ document.getElementById("app").innerHTML = toxml(
 )
 ```
 
+## 9. Forms
+
+### Controlled Components
+
+```jsx
+class NameForm extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { value: "" }
+
+    this.handleChange = this.handleChange.bind(this)
+    this.handleSubmit = this.handleSubmit.bind(this)
+  }
+
+  handleChange(event) {
+    this.setState({ value: event.target.value })
+  }
+
+  handleSubmit(event) {
+    alert("A name was submitted: " + this.state.value)
+    event.preventDefault()
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Name:
+          <input
+            type="text"
+            value={this.state.value}
+            onChange={this.handleChange}
+          />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    )
+  }
+}
+```
+
+```js
+const NameForm = async function* () {
+  const stateOb = new Observable({ name: "" })
+
+  const handleChange = (e) => {
+    stateOb.notify((state) => ({
+      ...state,
+      name: e.target.value,
+    }))
+  }
+
+  const handleSubmit = (e) => {
+    alert(`A name was submitted: ${stateOb.value.name}`)
+    e.preventDefault()
+  }
+
+  for await (const state of stateOb) {
+    yield [
+      "form",
+      {
+        onsubmit: handleSubmit,
+      },
+      [
+        "label",
+        {},
+        "Name:",
+        [
+          "input",
+          {
+            type: "text",
+            value: state.name,
+            onchange: handleChange,
+          },
+        ],
+      ],
+      [
+        "input",
+        {
+          type: "submit",
+          value: "Submit",
+        },
+      ],
+    ]
+  }
+}
+
+document.body.innerHTML = toxml(await render([NameForm, {}]))
+```
+
 ## 11. Composition vs Inheritance
 
 React
