@@ -8,7 +8,6 @@ import {
 } from "../dist/index"
 
 const main = async () => {
-  //
   const Counter: Component<{
     messageOb: Observable<string>
   }> = async function* ({ messageOb }: { messageOb: Observable<string> }) {
@@ -26,8 +25,10 @@ const main = async () => {
 
   console.log(document.body.innerHTML) // "<div>The count is now: 1</div>"
 
-  await messageOb.notify("Le décompte est maintenant:")
+  messageOb.notify("Le décompte est maintenant:")
 
+  // notify is fire and forget, so sleep to ensure dom has changed
+  await sleep(1)
   console.log(document.body.innerHTML) // "<div>Le décompte est maintenant: 2</div>"
 }
 

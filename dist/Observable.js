@@ -2,22 +2,31 @@ import { view } from "./lenses";
 export class Observable {
     constructor(init) {
         this.value = init;
+        this.ref = 1;
         this.watchers = [];
         this[Symbol.asyncIterator] = async function* () {
+            let myRef = this.ref;
+            yield this.value;
             while (true) {
-                yield this.value;
-                await new Promise((res) => {
-                    this.watchers.push(res);
-                });
+                if (myRef !== this.ref) {
+                    myRef = this.ref;
+                    yield this.value;
+                }
+                else {
+                    await new Promise((res) => {
+                        this.watchers.push(res);
+                    });
+                }
             }
         };
     }
-    notify(delta) {
+    async notify(delta) {
         this.value =
             typeof delta === "function" ? delta(this.value) : delta;
-        this.watchers
-            .splice(0, this.watchers.length)
-            .forEach((watcher) => watcher(undefined));
+        this.ref += 1;
+        for (const watcher of this.watchers.splice(0, this.watchers.length)) {
+            watcher(undefined);
+        }
     }
     focus(...lenses) {
         const ob = this;

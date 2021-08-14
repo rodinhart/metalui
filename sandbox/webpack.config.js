@@ -25,6 +25,6 @@ module.exports = {
   target: "web",
 
   devServer: {
-    port: 8081,
+    port: 8082,
   },
 }

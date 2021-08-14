@@ -141,11 +141,7 @@ console.log(document.body.innerHTML) // "<div>Le décompte est maintenant: 2</di
 metalui
 
 ```js
-const Counter = async function* ({
-  messageOb,
-}: {
-  messageOb: Observable<string>,
-}) {
+const Counter = async function* ({ messageOb }) {
   let count = 0
 
   for await (const message of messageOb) {
@@ -160,9 +156,9 @@ document.body.innerHTML = toxml(await render([Counter, { messageOb }]))
 
 console.log(document.body.innerHTML) // "<div>The count is now: 1</div>"
 
-await sleep(1000)
 messageOb.notify("Le décompte est maintenant:")
-await sleep(1000)
 
+// notify is fire and forget, so sleep to ensure dom has changed
+await sleep(1)
 console.log(document.body.innerHTML) // "<div>Le décompte est maintenant: 2</div>"
 ```
