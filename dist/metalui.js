@@ -57,6 +57,7 @@ export const render = async (markup, context = {}) => {
             } while (loop && !document.getElementById(id));
             const node = document.getElementById(id);
             if (!node) {
+                await iterator.return();
                 return;
             }
             const next = await iterator.next(node);

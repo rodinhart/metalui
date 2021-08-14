@@ -2,8 +2,7 @@
   - can we make context non-global?
   - $ means context
   - document this
-- escape strings to prevent injection attacks
-- test/implement component "dismount" after `for await of`
+- warn if yield type changes, i.e. yield ["div", {}] vs ["b", {}]
 - allow preventDefault on events
   - should already work
   - a event wrapper library for cross browser compatibility?

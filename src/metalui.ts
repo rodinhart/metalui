@@ -101,6 +101,7 @@ export const render = async (
 
       const node = document.getElementById(id)
       if (!node) {
+        await iterator.return()
         return
       }
 
