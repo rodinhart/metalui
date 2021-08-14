@@ -1,4 +1,3 @@
-- warn if yield type changes, i.e. yield ["div", {}] vs ["b", {}]
 - allow preventDefault on events
   - should already work
   - a event wrapper library for cross browser compatibility?

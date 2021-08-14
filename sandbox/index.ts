@@ -8,21 +8,20 @@ import {
 } from "../dist/index"
 
 const main = async () => {
-  const WhatSize = ({ number, $size }) => [
-    "div",
-    {},
-    `Size here at ${number} is ${$size}`,
-  ]
+  const Bad = async function* ({ ob }) {
+    for await (const v of ob) {
+      yield v % 2
+        ? ["div", {}, "Divving it"]
+        : ["b", {}, "Spanner in the works"]
+    }
+  }
 
-  const App = () => [
-    "div",
-    {},
-    [WhatSize, { number: 1 }],
-    ["div", {}, ["div", { $size: "large" }, [WhatSize, { number: 2 }]]],
-    [WhatSize, { number: 3 }],
-  ]
+  const ob = new Observable(1)
+  document.body.innerHTML = toxml(await render([Bad, { ob }]))
 
-  document.body.innerHTML = toxml(await render([App, { $size: "small" }]))
+  setInterval(() => {
+    ob.notify((x) => x + 1)
+  }, 1000)
 }
 
 main()

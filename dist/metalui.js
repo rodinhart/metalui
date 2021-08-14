@@ -65,7 +65,13 @@ export const render = async (markup, context = {}) => {
                 return;
             }
             const element = (await render(next.value, newContext));
-            const [, props, ...children] = element;
+            if (!Array.isArray(element)) {
+                throw new Error(`Expect component to rerender a tag, not ${element}`);
+            }
+            const [tag, props, ...children] = element;
+            if (tag !== node.tagName) {
+                throw new Error(`Expect component to rerender with tag ${node.tagName}, not tag ${tag}`);
+            }
             Object.assign(node, props);
             const ids = {};
             node.innerHTML = children.map((e) => toxml(e, id, ids)).join(" ");
@@ -76,6 +82,9 @@ export const render = async (markup, context = {}) => {
             return null;
         }
         const element = (await render(next.value, newContext));
+        if (!Array.isArray(element)) {
+            throw new Error(`Expect component to return a tag, not ${element}`);
+        }
         const [, props2] = element;
         id = props2.id || createUid();
         props2.id = id; // don't reassign
