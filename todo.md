@@ -1,7 +1,3 @@
-- react useContext example
-  - can we make context non-global?
-  - $ means context
-  - document this
 - warn if yield type changes, i.e. yield ["div", {}] vs ["b", {}]
 - allow preventDefault on events
   - should already work

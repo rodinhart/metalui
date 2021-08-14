@@ -8,37 +8,21 @@ import {
 } from "../dist/index"
 
 const main = async () => {
-  const Test = async function* ({ ob }) {
-    try {
-      for await (const v of ob) {
-        yield ["div", {}, v]
-      }
-    } finally {
-      console.log("Dismounting!")
-    }
-  }
+  const WhatSize = ({ number, $size }) => [
+    "div",
+    {},
+    `Size here at ${number} is ${$size}`,
+  ]
 
-  const Container = async function* ({ ob }) {
-    yield ["div", {}, [Test, { ob }]]
+  const App = () => [
+    "div",
+    {},
+    [WhatSize, { number: 1 }],
+    ["div", {}, ["div", { $size: "large" }, [WhatSize, { number: 2 }]]],
+    [WhatSize, { number: 3 }],
+  ]
 
-    for await (const v of ob) {
-      if (v > 3) {
-        yield ["div", {}, "Nothing to see here"]
-      }
-    }
-  }
-
-  const ob = new Observable(1)
-  document.body.innerHTML = toxml(await render([Container, { ob }]))
-  const _ = (i) => {
-    if (i < 6) {
-      console.log(i)
-      ob.notify(i)
-      setTimeout(() => _(i + 1), 1000)
-    }
-  }
-
-  setTimeout(() => _(2), 1000)
+  document.body.innerHTML = toxml(await render([App, { $size: "small" }]))
 }
 
 main()

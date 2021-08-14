@@ -55,3 +55,29 @@ const List = async function* ({ stateOb }) {
 ```
 
 [see in action](http://rodinhart.nl/metalui/ex2.html)
+
+## Providing component context
+
+```js
+const WhatSize = ({ number, $size }) => [
+  "div",
+  {},
+  `Size here at ${number} is ${$size}`,
+]
+
+const App = () => [
+  "div",
+  {},
+  [WhatSize, { number: 1 }],
+  ["div", {}, ["div", { $size: "large" }, [WhatSize, { number: 2 }]]],
+  [WhatSize, { number: 3 }],
+]
+
+document.body.innerHTML = toxml(await render([App, { $size: "small" }]))
+
+// Size here at 1 is small
+// Size here at 2 is large
+// Size here at 3 is small
+```
+
+Any context is marked with `$` and these properties are automatically propegated to the children. Context can be overwritten at any point.
