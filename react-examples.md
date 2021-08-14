@@ -305,16 +305,18 @@ const Clock = async function* () {
     nowOb.notify(new Date())
   }, 1000)
 
-  for await (const now of nowOb) {
-    yield [
-      "div",
-      {},
-      ["h1", {}, "Hello, world!"],
-      ["h2", {}, `It is ${now.toLocaleTimeString()}.`],
-    ]
+  try {
+    for await (const now of nowOb) {
+      yield [
+        "div",
+        {},
+        ["h1", {}, "Hello, world!"],
+        ["h2", {}, `It is ${now.toLocaleTimeString()}.`],
+      ]
+    }
+  } finally {
+    clearInterval(timerID)
   }
-
-  clearInterval(timerID)
 }
 
 document.getElementById("app").innerHTML = toxml(await render([Clock, {}]))

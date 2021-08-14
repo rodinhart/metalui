@@ -8,28 +8,28 @@ import {
 } from "../dist/index"
 
 const main = async () => {
-  const Counter: Component<{
-    messageOb: Observable<string>
-  }> = async function* ({ messageOb }: { messageOb: Observable<string> }) {
-    let count = 0
+  const Clock = async function* () {
+    const nowOb = new Observable(new Date())
 
-    for await (const message of messageOb) {
-      count++
-      yield ["div", {}, `${message} ${count}`] as Markup<unknown>
+    const timerID = setInterval(() => {
+      nowOb.notify(new Date())
+    }, 1000)
+
+    try {
+      for await (const now of nowOb) {
+        yield [
+          "div",
+          {},
+          ["h1", {}, "Hello, world!"],
+          ["h2", {}, `It is ${now.toLocaleTimeString()}.`],
+        ]
+      }
+    } finally {
+      clearInterval(timerID)
     }
   }
 
-  const messageOb = new Observable("The count is now:")
-
-  document.body.innerHTML = toxml(await render([Counter, { messageOb }]))
-
-  console.log(document.body.innerHTML) // "<div>The count is now: 1</div>"
-
-  messageOb.notify("Le décompte est maintenant:")
-
-  // notify is fire and forget, so sleep to ensure dom has changed
-  await sleep(1)
-  console.log(document.body.innerHTML) // "<div>Le décompte est maintenant: 2</div>"
+  document.body.innerHTML = toxml(await render([Clock, {}]))
 }
 
 main()

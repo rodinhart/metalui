@@ -41,7 +41,7 @@ No need for caching, or a virtual DOM, or component lifecycle. Because the argum
 
 ## But what are the costs?
 
-Because components are stateful and independent, they can receive updates to data even though the component is no longer required. Imagine a component that is only displayed when there are selected items: when the selected items are cleared the component might receive this update before its parent. Therefore, the component must check that there are selected items, and exit if there are not<sup>8</sup>. Subsequently the parent will render and destroy its children.
+Because components are stateful and independent, they can receive updates to data even though the component is no longer required. Imagine a component that is only displayed when there are selected items: when the selected items are cleared the component might receive this update before its parent. Therefore, the component must check that there are selected items, and exit if there are not<sup>8</sup>. Subsequently the parent will rerender and destroy its children.
 
 To avoid needless rerenders, a component must carefully choose what updates to observe on the data. You have to do this in any framework; in React it is done by careful arrangement of reference<sup>9</sup> equality for props, and memoization. Metalui just makes the need and implementation explicit.
 
