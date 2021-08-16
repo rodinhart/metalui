@@ -2,41 +2,40 @@ import {
   Component,
   Markup,
   Observable,
+  race,
   render,
   sleep,
   toxml,
 } from "../dist/index"
 
 const main = async () => {
-  const column = [1, 2, 3, 4, 5]
+  const App = async function* () {
+    const headsOb = new Observable(0)
+    const tailsOb = new Observable(0)
 
-  const dataOb = new Observable({
-    column,
-    revision: 1,
-  })
+    const timer = setInterval(() => {
+      if (Math.random() < 0.5) {
+        headsOb.notify((count) => count + 1)
+      } else {
+        tailsOb.notify((count) => count + 1)
+      }
+    }, 1000)
 
-  const Summary = async function* ({ dataOb }) {
-    for await (const { column } of dataOb) {
-      yield [
-        "div",
-        {},
-        `Count: ${column.length}, Sum: ${column.reduce((r, x) => r + x, 0)}`,
-      ]
+    try {
+      for await (const [heads, tails] of race(headsOb, tailsOb)) {
+        yield [
+          "ul",
+          {},
+          ["li", {}, `Heads: ${heads}`],
+          ["li", {}, `Tails: ${tails}`],
+        ]
+      }
+    } finally {
+      clearInterval(timer)
     }
   }
 
-  document.body.innerHTML = toxml(await render([Summary, { dataOb }]))
-
-  setTimeout(() => {
-    dataOb.notify(({ column, revision }) => {
-      column.pop() // mutation
-
-      return {
-        column,
-        revision: revision + 1,
-      }
-    })
-  }, 2000)
+  document.body.innerHTML = toxml(await render([App, {}]))
 }
 
 main()

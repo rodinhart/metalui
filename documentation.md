@@ -117,3 +117,35 @@ setTimeout(() => {
 ```
 
 The object reference to `column` is constant, as it's only mutated, but combined with a monotonically increasing revision number it behaves as an immutable object.
+
+## Racing multiple observables
+
+```js
+const App = async function* () {
+  const headsOb = new Observable(0)
+  const tailsOb = new Observable(0)
+
+  const timer = setInterval(() => {
+    if (Math.random() < 0.5) {
+      headsOb.notify((count) => count + 1)
+    } else {
+      tailsOb.notify((count) => count + 1)
+    }
+  }, 1000)
+
+  try {
+    for await (const [heads, tails] of race(headsOb, tailsOb)) {
+      yield [
+        "ul",
+        {},
+        ["li", {}, `Heads: ${heads}`],
+        ["li", {}, `Tails: ${tails}`],
+      ]
+    }
+  } finally {
+    clearInterval(timer)
+  }
+}
+
+document.body.innerHTML = toxml(await render([App, {}]))
+```
