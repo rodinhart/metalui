@@ -6,3 +6,7 @@
 - fix glob
 - await notify?
 - properly fix types for markup etc
+  - return type
+- allow style = {} ?
+- how to clear props on DOM node on rerender?
+  - https://github.com/bikeshaving/crank/issues/204

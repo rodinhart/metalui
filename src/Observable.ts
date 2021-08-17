@@ -29,8 +29,13 @@ export class Observable<T /* extends Extract<(val: T) => T, any> */> {
   }
 
   async notify(delta: T | ((val: T) => T)) {
-    this.value =
+    const next =
       typeof delta === "function" ? (delta as (val: T) => T)(this.value) : delta
+    if (next === this.value) {
+      return
+    }
+
+    this.value = next
     this.ref += 1
     for (const watcher of this.watchers.splice(0, this.watchers.length)) {
       watcher(undefined)

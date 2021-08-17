@@ -21,8 +21,11 @@ export class Observable {
         };
     }
     async notify(delta) {
-        this.value =
-            typeof delta === "function" ? delta(this.value) : delta;
+        const next = typeof delta === "function" ? delta(this.value) : delta;
+        if (next === this.value) {
+            return;
+        }
+        this.value = next;
         this.ref += 1;
         for (const watcher of this.watchers.splice(0, this.watchers.length)) {
             watcher(undefined);
