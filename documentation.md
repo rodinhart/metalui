@@ -219,3 +219,23 @@ document.body.innerHTML = toxml(await render([App, {}]))
 ```
 
 [see in action](http://rodinhart.nl/metalui/ex-scroller.html)
+
+## Showing loading information
+
+```js
+const load = async () => {
+  await sleep(2000)
+
+  return [2, 3, 5]
+}
+
+const App = async function* () {
+  yield ["div", {}, "Loading..."]
+  const list = await load()
+  yield ["div", {}, ["ul", {}, ...list.map((x) => ["li", {}, x])]]
+}
+
+document.body.innerHTML = toxml(await render([App, {}]))
+```
+
+[see in action](http://rodinhart.nl/metalui/ex-loading.html)

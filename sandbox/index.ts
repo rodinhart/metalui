@@ -10,8 +10,17 @@ import {
 } from "../dist/index"
 
 const main = async () => {
-  const Sub = () => [Fragment, {}, ["h2", {}, "Foo"], ["h2", {}, "Bar"]]
-  const App = () => ["div", {}, ["h1", {}, "App"], [Sub, {}]]
+  const load = async () => {
+    await sleep(2000)
+
+    return [2, 3, 5]
+  }
+
+  const App = async function* () {
+    yield ["div", {}, "Loading..."]
+    const list = await load()
+    yield ["div", {}, ["ul", {}, ...list.map((x) => ["li", {}, x])]]
+  }
 
   document.body.innerHTML = toxml(await render([App, {}]))
 }
