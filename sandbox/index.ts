@@ -47,7 +47,7 @@ const main = async () => {
 
     const Rows = async function* ({ height, scrollOb }) {
       for await (const scroll of scrollOb) {
-        const start = Math.floor(scroll / 19)
+        const start = Math.round(scroll / 19)
         const len = Math.ceil(height / 19)
 
         yield [
@@ -67,7 +67,7 @@ const main = async () => {
     return [
       "div",
       { style: "width: 200px; height: 400px;" },
-      [Scroller, { totalHeight: (1 + data.length) * 19, Body: Rows }],
+      [Scroller, { totalHeight: data.length * 19, Body: Rows }],
     ]
   }
 
