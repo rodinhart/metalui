@@ -25,6 +25,12 @@ export type Markup<T> =
   | string
   | [string | Component<T>, T, ...Markup<any>[]]
 
+export const Fragment = ({ children }: { children: Markup<any>[] }) => [
+  "Fragment",
+  {},
+  ...children,
+]
+
 // JSONML to XML string
 export const toxml = (
   el: Element,
@@ -48,6 +54,10 @@ export const toxml = (
     )
 
     const mapped = children.map((c) => toxml(c, gkey, ids))
+
+    if (name === "Fragment") {
+      return mapped.join("")
+    }
 
     return `<${name} ${Object.entries(evented)
       .map(([key, val]) => (val !== undefined ? `${key}="${val}"` : key))

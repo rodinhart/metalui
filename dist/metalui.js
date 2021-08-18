@@ -6,6 +6,11 @@ const escapeHtml = (() => {
         return e.innerHTML;
     };
 })();
+export const Fragment = ({ children }) => [
+    "Fragment",
+    {},
+    ...children,
+];
 // JSONML to XML string
 export const toxml = (el, gkey = "GLOBAL", ids = {}) => {
     if (Array.isArray(el)) {
@@ -22,6 +27,9 @@ export const toxml = (el, gkey = "GLOBAL", ids = {}) => {
             }
         }, props));
         const mapped = children.map((c) => toxml(c, gkey, ids));
+        if (name === "Fragment") {
+            return mapped.join("");
+        }
         return `<${name} ${Object.entries(evented)
             .map(([key, val]) => (val !== undefined ? `${key}="${val}"` : key))
             .join(" ")}>${mapped.join("")}</${name}>`;
