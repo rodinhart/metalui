@@ -46,8 +46,16 @@ export const render = async (markup, context = {}) => {
             return r;
         }, { ...context });
         const mapped = [];
-        for (const child of children) {
-            mapped.push(await render(child, newContext));
+        try {
+            for (const child of children) {
+                mapped.push(await render(child, newContext));
+            }
+        }
+        catch (e) {
+            if (props.errorBoundary) {
+                return props.errorBoundary;
+            }
+            throw e;
         }
         if (typeof tag === "string") {
             return [tag, props, ...mapped];

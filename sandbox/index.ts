@@ -10,17 +10,22 @@ import {
 } from "../dist/index"
 
 const main = async () => {
-  const load = async () => {
-    await sleep(2000)
-
-    return [2, 3, 5]
+  const Content = () => {
+    throw new Error("Blah")
+    return ["p", {}, "I'm here"]
   }
 
-  const App = async function* () {
-    yield ["div", {}, "Loading..."]
-    const list = await load()
-    yield ["div", {}, ["ul", {}, ...list.map((x) => ["li", {}, x])]]
+  const Container = async function* ({ children }) {
+    yield ["div", {}, ...children]
   }
+
+  const App = () => [
+    "div",
+    {},
+    ["h1", {}, "Welcome!"],
+    [Container, { errorBoundary: ["div", {}, "We are fuck*d"] }, [Content, {}]],
+    ["p", {}, "The aftermath"],
+  ]
 
   document.body.innerHTML = toxml(await render([App, {}]))
 }

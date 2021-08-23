@@ -86,8 +86,16 @@ export const render = async (
     )
 
     const mapped: Element[] = []
-    for (const child of children) {
-      mapped.push(await render(child, newContext))
+    try {
+      for (const child of children) {
+        mapped.push(await render(child, newContext))
+      }
+    } catch (e) {
+      if (props.errorBoundary) {
+        return props.errorBoundary
+      }
+
+      throw e
     }
 
     if (typeof tag === "string") {
