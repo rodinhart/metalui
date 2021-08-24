@@ -10,28 +10,21 @@ import {
 } from "../dist/index"
 
 const main = async () => {
-  const Lazy = async function* () {
-    const Costly = (await import("./Costly.js")).default
+  const WhatSize = ({ number, $size }) => [
+    "div",
+    {},
+    `Size here at ${number} is ${$size}`,
+  ]
 
-    yield [Costly, {}]
-  }
+  const App = () => [
+    "div",
+    {},
+    [WhatSize, { number: 1 }],
+    ["div", {}, ["div", { $size: "large" }, [WhatSize, { number: 2 }]]],
+    [WhatSize, { number: 3 }],
+  ]
 
-  const App = async function* () {
-    const ob = new Observable(false)
-
-    for await (const val of ob) {
-      yield [
-        "div",
-        {},
-        !val ? "Greedily loaded" : [Lazy, {}],
-        ["br", {}],
-        ["button", { onclick: () => ob.notify((x) => !x) }, "Switch"],
-      ]
-    }
-  }
-
-  window.glob = {}
-  document.body.innerHTML = toxml(await render([App, {}]))
+  document.body.innerHTML = toxml(await render([App, { $size: "small" }]))
 }
 
 main()

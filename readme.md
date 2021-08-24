@@ -18,22 +18,44 @@
 
 [Lazy load components](#lazy-load-components) _library_
 
+## More documentation
+
+[React examples as metalui](./react-examples.md)
+
+[Crank.js examples as metalui](./crankjs-examples.md)
+
 ## Stateless components
 
 ```ts
 const List = ({ title, items }) => [
   "div",
-  { class: "todo-list" },
+  {},
   ["div", {}, `${title} (${items.length})`],
   ...items.map((item) => ["li", {}, item]),
 ]
 ```
 
-[see in action](http://rodinhart.nl/metalui/ex1.html)
+[see in action](http://rodinhart.nl/metalui/ex-stateless.html)
 
 ## Stateful components
 
-```ts
+```js
+const disj = <T>(set: Set<T>, ...keys: T[]) => {
+  const r = new Set(set)
+  for (const key of keys) {
+    r.delete(key)
+  }
+
+  return r
+}
+
+// Some async data loading
+const loadItems = async () => {
+  await sleep(42)
+
+  return ["Apples", "Bananas", "Chocolate"]
+}
+
 const List = async function* ({ stateOb }) {
   // Some local state available while the component is alive
   const onClick = (item) =>
@@ -54,14 +76,14 @@ const List = async function* ({ stateOb }) {
 
     yield [
       "div",
-      { class: "todo-list" },
+      {},
       [
         "ul",
         {},
         ...items.map((item) => [
           "li",
           {
-            class: selected.has(item) ? "todo--selected" : "",
+            style: selected.has(item) ? "font-weight: bold;" : "",
             onclick: () => onClick(item),
           },
           item,
@@ -70,9 +92,15 @@ const List = async function* ({ stateOb }) {
     ]
   }
 }
+
+const stateOb = new Observable({
+  selected: new Set(["Bananas"]),
+})
+
+document.body.innerHTML = toxml(await render([List, { stateOb }]))
 ```
 
-[see in action](http://rodinhart.nl/metalui/ex2.html)
+[see in action](http://rodinhart.nl/metalui/ex-stateful.html)
 
 ## Component context
 
@@ -99,6 +127,8 @@ document.body.innerHTML = toxml(await render([App, { $size: "small" }]))
 ```
 
 Any context is marked with `$` and these properties are automatically propegated to the children. Context can be overwritten at any point.
+
+[see in action](http://rodinhart.nl/metalui/ex-context.html)
 
 ## Mutable data
 

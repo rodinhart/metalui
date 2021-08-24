@@ -57,11 +57,7 @@ No, and that is probably the best reason to put forward not to use metalui. Havi
 
 ## Before I read the footnotes, where are the docs?
 
-[Here is the documentation](./documentation.md)
-
-[React examples as metalui](./react-examples.md)
-
-[Crank.js examples as metalui](./crankjs-examples.md)
+[Here is the documentation](./readme.md)
 
 ## Ah, here are the footnotes
 
