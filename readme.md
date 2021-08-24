@@ -1,86 +1,285 @@
-# metalui
+# Documentation
 
-An anti-framework
+## Contents
 
-## FFS, not another one?
+[Stateless components](#stateless-components)
 
-I'm afraid so...
+[Stateful components](#stateful-components)
 
-## What's wrong with React?
+[Component context](#component-context)
 
-An awful lot, but most importantly, the render function in React is sync while JavaScript is fundamentally async. To bridge this impedance mismatch one is forced to cache data<sup>1</sup>.
+[Mutable data](#mutable-data)
 
-## So?
+[Multiple observables](#multiple-observables)
 
-When the app in question has hundreds of megabytes of mutable data with complex dependencies and updates, the overhead of managing the cache and the pressure on the garbage collector has a huge impact on the overall performance. And it is one of the most difficult problems in computer science<sup>2</sup>.
+[Virtual scrolling](#virtual-scrolling) _library_
 
-## What about other frameworks?
+[Loading spinner](#loading-spinner) _library_
 
-My experience is mostly with React, but I believe all other (accepted) frameworks suffer the same fate. Crank.js is the odd one out, and it would be a massive step forward if it became established. But even Crank.js overcomplicates matters.
+[Lazy load components](#lazy-load-components) _library_
 
-## Uh-huh, so what are we left with?
+## Stateless components
 
-I'm glad you asked that, very little is the answer:
+```ts
+const List = ({ title, items }) => [
+  "div",
+  { class: "todo-list" },
+  ["div", {}, `${title} (${items.length})`],
+  ...items.map((item) => ["li", {}, item]),
+]
+```
 
-1. A render function<sup>3</sup> that renders markup into the DOM and can perform a partial update for stateful components
-2. Observables<sup>4</sup> for conveying changing data between components
+[see in action](http://rodinhart.nl/metalui/ex1.html)
 
-## We tried observables, it wasn't great
+## Stateful components
 
-Those observables bury the concept of time under trilobites of obtuse API. Metalui observables are a simple pub-sub model.
+```ts
+const List = async function* ({ stateOb }) {
+  // Some local state available while the component is alive
+  const onClick = (item) =>
+    stateOb.notify((state) => ({
+      ...state,
+      selected: state.selected.has(item)
+        ? disj(state.selected, item)
+        : new Set([...state.selected, item]),
+    }))
 
-## ...that can't be it
+  for await (const { selected } of stateOb) {
+    if (!selected) {
+      return // exit component
+    }
 
-The DOM is fundamentally stateful, and calling the markup declarative is unhelpful<sup>5</sup>. The first render versus subsequent renders are very different, exemplified by scroll position, text input carret and selection, dropdown list state and HTML canvas.
+    // Some async data loading
+    const items = await loadItems()
 
-Metalui embraces statefulness by conceptualizing a component as a stateful, independent object<sup>6</sup> that can send signals about data to other components.
+    yield [
+      "div",
+      { class: "todo-list" },
+      [
+        "ul",
+        {},
+        ...items.map((item) => [
+          "li",
+          {
+            class: selected.has(item) ? "todo--selected" : "",
+            onclick: () => onClick(item),
+          },
+          item,
+        ]),
+      ],
+    ]
+  }
+}
+```
 
-## You can probably explain that better, but what is the upshot?
+[see in action](http://rodinhart.nl/metalui/ex2.html)
 
-No need for caching, or a virtual DOM, or component lifecycle. Because the arguments to a component function are no longer held hostage by the false premise they are declarative/pure, components are free to receive static data, dynamic data, services or any other context in a normal<sup>7</sup> way. You don't even have to use observables, you could use message passing, or a message queue, or anything else.
+## Component context
 
-## But what are the costs?
+```js
+const WhatSize = ({ number, $size }) => [
+  "div",
+  {},
+  `Size here at ${number} is ${$size}`,
+]
 
-Because components are stateful and independent, they can receive updates to data even though the component is no longer required. Imagine a component that is only displayed when there are selected items: when the selected items are cleared the component might receive this update before its parent. Therefore, the component must check that there are selected items, and exit if there are not<sup>8</sup>. Subsequently the parent will rerender and destroy its children.
+const App = () => [
+  "div",
+  {},
+  [WhatSize, { number: 1 }],
+  ["div", {}, ["div", { $size: "large" }, [WhatSize, { number: 2 }]]],
+  [WhatSize, { number: 3 }],
+]
 
-To avoid needless rerenders, a component must carefully choose what updates to observe on the data. You have to do this in any framework; in React it is done by careful arrangement of reference<sup>9</sup> equality for props, and memoization. Metalui just makes the need and implementation explicit.
+document.body.innerHTML = toxml(await render([App, { $size: "small" }]))
 
-Although these rules are tedious, I believe them the lesser of evils and much simpler than all the rules of other frameworks.
+// Size here at 1 is small
+// Size here at 2 is large
+// Size here at 3 is small
+```
 
-## Hmm, we'll see. Bottom line here?
+Any context is marked with `$` and these properties are automatically propegated to the children. Context can be overwritten at any point.
 
-An order of magnitude increase in performance, an order of magnitude decrease in memory usage, and an order of magnitude decrease in bundle size<sup>10</sup>.
+## Mutable data
 
-## Hang on, I can't use any of my favourite UI components?
+```js
+const column = [1, 2, 3, 4, 5]
 
-No, and that is probably the best reason to put forward not to use metalui. Having said that, the amount of time we've spend customizing and battling some UI component library, and still not got exactly what we want is probably greater than building it from scratch. In my prototype I have used plain HTML and CSS and, with the invention of flexbox and css variables, creating some of the more complex components was actually quite easy. And because all the dependencies have been culled, the UI layer is extremly thin and very transparent.
+const dataOb = new Observable({
+  column,
+  revision: 1,
+})
 
-## Before I read the footnotes, where are the docs?
+const Summary = async function* ({ dataOb }) {
+  for await (const { column } of dataOb) {
+    yield [
+      "div",
+      {},
+      `Count: ${column.length}, Sum: ${column.reduce((r, x) => r + x, 0)}`,
+    ]
+  }
+}
 
-[Here is the documentation](./documentation.md)
+document.body.innerHTML = toxml(await render([Summary, { dataOb }]))
 
-[React examples as metalui](./react-examples.md)
+setTimeout(() => {
+  dataOb.notify(({ column, revision }) => {
+    column.pop() // mutation
 
-[Crank.js examples as metalui](./crankjs-examples.md)
+    return {
+      column,
+      revision: revision + 1,
+    }
+  })
+}, 2000)
+```
 
-## Ah, here are the footnotes
+The object reference to `column` is constant, as it's only mutated, but combined with a monotonically increasing revision number it behaves as an immutable object.
 
-<sup>1</sup> I prefer to call it buffering, as caching is an optional optimization in my eyes.
+## Multiple observables
 
-<sup>2</sup> the other being naming
+```js
+const App = async function* () {
+  const headsOb = new Observable(0)
+  const tailsOb = new Observable(0)
 
-<sup>3</sup> about 100 lines
+  const timer = setInterval(() => {
+    if (Math.random() < 0.5) {
+      headsOb.notify((count) => count + 1)
+    } else {
+      tailsOb.notify((count) => count + 1)
+    }
+  }, 1000)
 
-<sup>4</sup> about 50 lines
+  try {
+    for await (const [heads, tails] of race(headsOb, tailsOb)) {
+      yield [
+        "ul",
+        {},
+        ["li", {}, `Heads: ${heads}`],
+        ["li", {}, `Tails: ${tails}`],
+      ]
+    }
+  } finally {
+    clearInterval(timer)
+  }
+}
 
-<sup>5</sup> a lie
+document.body.innerHTML = toxml(await render([App, {}]))
+```
 
-<sup>6</sup> more like smalltalk, but components are still functions
+## Virtual scrolling
 
-<sup>7</sup> no hooks or algebraic effects
+```js
+const Scroller = async function* ({ Body, totalHeight }) {
+  const scrollOb = new Observable(0)
 
-<sup>8</sup> see the docs for concrete examples
+  const onScroll = (e) => {
+    scrollOb.notify(e.target.scrollTop)
+  }
 
-<sup>9</sup> not the more useful value equality
+  const ref = yield ["div", { style: "height: 100%; position: relative;" }]
 
-<sup>10</sup> a prototype for a significant portion of a complex, stateful application, not a toy example
+  yield [
+    "div",
+    { style: "height: 100%; position: relative;" },
+    [
+      "div",
+      {
+        style: "height: 100%; overflow-y: auto; width: 100%",
+        onscroll: onScroll,
+      },
+      ["div", { style: `height: ${totalHeight}px;` }],
+    ],
+    [
+      "div",
+      {
+        style:
+          "height: 100%; overflow-y: hidden; position: absolute; top: 0px; width: calc(100% - 18px);",
+      },
+      [Body, { height: (ref && ref.offsetHeight) || 100, scrollOb }],
+    ],
+  ]
+}
+
+const App = () => {
+  const data = new Array(100000)
+    .fill(0)
+    .map(() => Math.random().toString(36).substr(2))
+
+  const Rows = async function* ({ height, scrollOb }) {
+    for await (const scroll of scrollOb) {
+      const start = Math.round(scroll / 19)
+      const len = Math.ceil(height / 19)
+
+      yield [
+        "div",
+        {},
+        ...data
+          .slice(start, start + len)
+          .map((row, i) => [
+            "div",
+            { style: "height: 19px;" },
+            `${1 + start + i}: ${row}`,
+          ]),
+      ]
+    }
+  }
+
+  return [
+    "div",
+    { style: "width: 200px; height: 400px;" },
+    [Scroller, { totalHeight: data.length * 19, Body: Rows }],
+  ]
+}
+
+document.body.innerHTML = toxml(await render([App, {}]))
+```
+
+[see in action](http://rodinhart.nl/metalui/ex-scroller.html)
+
+## Loading spinner
+
+```js
+const load = async () => {
+  await sleep(2000)
+
+  return [2, 3, 5]
+}
+
+const App = async function* () {
+  yield ["div", {}, "Loading..."]
+  const list = await load()
+  yield ["div", {}, ["ul", {}, ...list.map((x) => ["li", {}, x])]]
+}
+
+document.body.innerHTML = toxml(await render([App, {}]))
+```
+
+[see in action](http://rodinhart.nl/metalui/ex-loading.html)
+
+## Lazy load components
+
+```js
+const Lazy = async function* () {
+  const Costly = (await import("./Costly.js")).default
+
+  yield [Costly, {}]
+}
+
+const App = async function* () {
+  const ob = new Observable(false)
+
+  for await (const val of ob) {
+    yield [
+      "div",
+      {},
+      !val ? "Greedily loaded" : [Lazy, {}],
+      ["br", {}],
+      ["button", { onclick: () => ob.notify((x) => !x) }, "Switch"],
+    ]
+  }
+}
+
+document.body.innerHTML = toxml(await render([App, {}]))
+```
