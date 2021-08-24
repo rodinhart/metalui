@@ -239,3 +239,29 @@ document.body.innerHTML = toxml(await render([App, {}]))
 ```
 
 [see in action](http://rodinhart.nl/metalui/ex-loading.html)
+
+## Lazy load components
+
+```js
+const Lazy = async function* () {
+  const Costly = (await import("./Costly.js")).default
+
+  yield [Costly, {}]
+}
+
+const App = async function* () {
+  const ob = new Observable(false)
+
+  for await (const val of ob) {
+    yield [
+      "div",
+      {},
+      !val ? "Greedily loaded" : [Lazy, {}],
+      ["br", {}],
+      ["button", { onclick: () => ob.notify((x) => !x) }, "Switch"],
+    ]
+  }
+}
+
+document.body.innerHTML = toxml(await render([App, {}]))
+```

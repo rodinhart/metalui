@@ -10,23 +10,27 @@ import {
 } from "../dist/index"
 
 const main = async () => {
-  const Content = () => {
-    throw new Error("Blah")
-    return ["p", {}, "I'm here"]
+  const Lazy = async function* () {
+    const Costly = (await import("./Costly.js")).default
+
+    yield [Costly, {}]
   }
 
-  const Container = async function* ({ children }) {
-    yield ["div", {}, ...children]
+  const App = async function* () {
+    const ob = new Observable(false)
+
+    for await (const val of ob) {
+      yield [
+        "div",
+        {},
+        !val ? "Greedily loaded" : [Lazy, {}],
+        ["br", {}],
+        ["button", { onclick: () => ob.notify((x) => !x) }, "Switch"],
+      ]
+    }
   }
 
-  const App = () => [
-    "div",
-    {},
-    ["h1", {}, "Welcome!"],
-    [Container, { errorBoundary: ["div", {}, "We are fuck*d"] }, [Content, {}]],
-    ["p", {}, "The aftermath"],
-  ]
-
+  window.glob = {}
   document.body.innerHTML = toxml(await render([App, {}]))
 }
 
