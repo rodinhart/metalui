@@ -1,5 +1,7 @@
 import { createUid, map, sleep } from "./lang"
 
+declare const glob: Record<string, Record<string, (e: Event) => void>>
+
 const escapeHtml = (() => {
   const e = document.createElement("div")
 
@@ -10,14 +12,15 @@ const escapeHtml = (() => {
   }
 })()
 
-declare const glob: Record<string, Record<string, (e: Event) => void>>
-
 // e.g. AppProps, PropertyProps etc?
 export type Props = Record<string, any>
+
 type Element = null | boolean | number | string | [string, Props, ...Element[]]
+
 export type Component<T extends Props> =
   | ((props: T) => Markup<any>)
   | ((props: T) => AsyncGenerator<Markup<any>, void, HTMLElement>)
+
 export type Markup<T> =
   | null
   | boolean

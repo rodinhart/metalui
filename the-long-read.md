@@ -10,6 +10,14 @@ If the UI is developed in the browser (isn't it always) there are multiple platf
 
 UI is usually event driven. Additionally, JavaScript is async (non-blocking). Since the introduction of the `async/await` syntax this is no longer an issue in itself but it should be noted that asynchrony is sticky: an async function will force the calling context to be async as well. To put it another way, normal (sync) functions can be used in an async context, but not the other way around. Now, most web UI frameworks are synchronous in that a component or render function is _not_ in an async context. There is no way, in a non-blocking single-threaded runtime, to turn async into sync.
 
+So how is this generally solved in practice? By creating machinery that divides an async call into two steps and returns some variation of `{ loading: true, data: undefined }` followed by `{ loading: false, data: <data-revision-1> }`. On subsequent calls it might return `{ loading true, data: <data-revision-1> }` followed by `{ loading: false, data: <data-revision-2> }`.
+
+The consequence of this is the introduction of (accidental) state, multiple invocations of a component for a single render cycle and forced caching of the async function's result value. When reading through component code, the developer has to mentally simulate running through the first, second, third and subsequent calls, keeping track of state to understand the behaviour of the component. Multiple invocations by external machinery break the stack trace, complicating error handling, and usually some optional `error` is returned alongside `loading` and `data`.
+
+The result cache needs to be managed, invalidated when input parameters change and destroyed when components go out of scope to avoid memory leaks. Managing cache is complex, even more so when it is coupled to a UI, and puts pressure on the garbage collector.
+
+Finally, UIs are hierarchical: the location of components in the display tree depends on the location on the screen, whether flow or absolute positioning is used, and the position in the display stack (z-index). What tends to happen is that other aspects such as the data models, control logic, and the passing of properties and events are coupled to, and takes the shape of, that hierarchy. This is a coupling you can do without, makes changing the visual layout a heavy job, because all the coupled code has to move with it, and makes it less reusable in other contexts.
+
 ## notes
 
 testing

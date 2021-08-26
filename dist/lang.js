@@ -16,11 +16,17 @@ export const compose = (...fs) => {
         return r;
     };
 };
+/**
+ * Conjoin. Returns a new collection with the xs 'added'.
+ */
 export const conj = (coll, ...xs) => {
     return new Set([...coll, ...xs]);
 };
 export const count = (coll) => coll.reduce((r) => r + 1, 0);
 export const createUid = () => Math.random().toString(16).substr(2);
+/**
+ * Disjoin. Returns a new collection with the xs 'removed'.
+ */
 export const disj = (set, ...keys) => {
     const r = new Set(set);
     for (const key of keys) {
@@ -28,6 +34,9 @@ export const disj = (set, ...keys) => {
     }
     return r;
 };
+/**
+ * Disassociate. Returns a new object without the specified keys.
+ */
 export const dissoc = (obj, ...keys) => {
     const r = {};
     for (const key in obj) {
@@ -39,6 +48,9 @@ export const dissoc = (obj, ...keys) => {
 };
 export const filter = (p, coll) => createReducible((step, init) => coll.reduce((r, x) => (p(x) ? step(r, x) : r), init));
 export const identity = (x) => x;
+/**
+ * Returns the intersection of two sets.
+ */
 export const intersection = (s1, s2) => {
     const r = new Set();
     for (const x of s1) {
@@ -54,7 +66,9 @@ export const map = (f, coll) => createReducible((step, init) => {
         : Object.entries(coll);
     return t.reduce((r, x) => step(r, f(x)), init);
 });
-// Return memoized function, optionally with hash creating function.
+/**
+ * Returns a memoized function, optionally with hash creating function.
+ */
 export const memo = (f, getHash) => {
     const cache = {};
     return (...args) => {
@@ -65,7 +79,9 @@ export const memo = (f, getHash) => {
         return cache[hash];
     };
 };
-// memoize promise thunk
+/**
+ * Returns a memoized Thunks.
+ */
 export const memoPromise = (thunk) => {
     const cache = [];
     return async () => {
@@ -78,8 +94,9 @@ export const memoPromise = (thunk) => {
         });
     };
 };
-// race multiple async iterables
-// Needs multiple signatures like compose
+/**
+ * Race multiple async iterables.
+ */
 export const race = (...iterables) => ({
     [Symbol.asyncIterator]: async function* () {
         const iterators = iterables.map((iter) => iter[Symbol.asyncIterator]());
@@ -94,6 +111,9 @@ export const race = (...iterables) => ({
         }
     },
 });
+/**
+ * Returns a reducibles of integers from start (inclusive) to end (exclusive).
+ */
 export const range = (a, b) => createReducible((step, init) => {
     let r = init;
     let i = a;
@@ -103,17 +123,19 @@ export const range = (a, b) => createReducible((step, init) => {
     }
     return r;
 });
-// sleep for ms milliseconds
+/**
+ * Returns a Promise that sleeps for ms milliseconds.
+ */
 export const sleep = (ms) => new Promise((res, rej) => {
     setTimeout(() => {
         res(undefined);
     }, ms);
 });
+/**
+ * Return result of threading initial value through a series of functions.
+ */
 export const thread = (x, ...fs) => fs.reduce((x, f) => f(x), x);
-export const toArray = (coll) => Array.isArray(coll)
-    ? coll
-    : coll.reduce((r, x) => {
-        r.push(x);
-        return r;
-    }, []);
+/**
+ * Returns the union of two sets.
+ */
 export const union = (s1, s2) => new Set([...s1, ...s2]);

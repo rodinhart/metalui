@@ -9,3 +9,4 @@
   - return type
 - allow style = {} ?
 - put warning/errors where sensible
+- API docs
