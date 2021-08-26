@@ -1,4 +1,4 @@
-import { createUid, map, sleep, toObject } from "./lang";
+import { createUid, map, sleep } from "./lang";
 const escapeHtml = (() => {
     const e = document.createElement("div");
     return (s) => {
@@ -15,7 +15,7 @@ export const Fragment = ({ children }) => [
 export const toxml = (el, gkey = "GLOBAL", ids = {}) => {
     if (Array.isArray(el)) {
         const [name, props, ...children] = el;
-        const evented = toObject(map(([key, val]) => {
+        const evented = Object.fromEntries(map(([key, val]) => {
             if (key.substr(0, 2) !== "on") {
                 return [key, val];
             }

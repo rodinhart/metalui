@@ -1,30 +1,35 @@
-export interface Reducible<T> {
+export interface Reducible<T> extends Iterable<T> {
   reduce: <R>(step: (r: R, x: T) => R, init: R) => R
+  [Symbol.iterator]: () => Generator<T, void, undefined>
 }
 
-export const assoc = (obj: Record<string, any>, ...pairs: (string | any)[]) => {
-  const r = { ...obj }
-  for (let i = 0; i + 1 < pairs.length; i += 2) {
-    r[pairs[i]] = pairs[i + 1]
-  }
+const createReducible = <T>(
+  reduce: <R>(step: (r: R, x: T) => R, init: R) => R
+): Reducible<T> => ({
+  reduce,
+  [Symbol.iterator]: function* () {
+    yield* reduce<T[]>((r, x) => {
+      r.push(x)
 
-  return r
+      return r
+    }, [])
+  },
+})
+
+type Icompose = {
+  <A, B, R>(g: (x: B) => R, f: (x: A) => B): (x: A) => R
+
+  <A, B, C, R>(h: (x: C) => R, g: (x: B) => C, f: (x: A) => B): (x: A) => R
+
+  <A, B, C, D, R>(
+    i: (x: D) => R,
+    h: (x: C) => D,
+    g: (x: B) => C,
+    f: (x: A) => B
+  ): (x: A) => R
 }
 
-function compose<A, B, R>(g: (x: B) => R, f: (x: A) => B): (x: A) => R
-function compose<A, B, C, R>(
-  h: (x: C) => R,
-  g: (x: B) => C,
-  f: (x: A) => B
-): (x: A) => R
-function compose<A, B, C, D, R>(
-  i: (x: D) => R,
-  h: (x: C) => D,
-  g: (x: B) => C,
-  f: (x: A) => B
-): (x: A) => R
-
-function compose(...fs: ((x: any) => any)[]) {
+export const compose: Icompose = (...fs: ((x: any) => any)[]) => {
   return (x: any) => {
     let r = x
     for (let i = fs.length - 1; i >= 0; i -= 1) {
@@ -34,8 +39,6 @@ function compose(...fs: ((x: any) => any)[]) {
     return r
   }
 }
-
-export { compose }
 
 export const conj = <T>(coll: Set<T>, ...xs: T[]) => {
   return new Set([...coll, ...xs])
@@ -68,13 +71,11 @@ export const dissoc = (obj: Record<string, any>, ...keys: string[]) => {
 export const filter = <T>(
   p: (x: T) => boolean,
   coll: Reducible<T>
-): Reducible<T> => ({
-  reduce: (step, init) => coll.reduce((r, x) => (p(x) ? step(r, x) : r), init),
-})
+): Reducible<T> =>
+  createReducible((step, init) =>
+    coll.reduce((r, x) => (p(x) ? step(r, x) : r), init)
+  )
 
-// export const reduce = (step, init, coll) => coll.reduce(step, init)
-
-// identity function
 export const identity = <T>(x: T) => x
 
 export const intersection = <T>(s1: Set<T>, s2: Set<T>): Set<T> => {
@@ -89,42 +90,23 @@ export const intersection = <T>(s1: Set<T>, s2: Set<T>): Set<T> => {
   return r
 }
 
-// pour key-value pairs into object
-export const into = (
-  obj: Record<string, any>,
-  ...ps: [string, any][]
-): Record<string, any> =>
-  ps.reduce(
-    (r, [key, val]) => {
-      r[key] = val
+type Imap = {
+  <T, U>(f: (x: T) => U, coll: Reducible<T>): Reducible<U>
 
-      return r
-    },
-    { ...obj }
-  )
-
-function map<T, U>(f: (x: T) => U, coll: Reducible<T>): Reducible<U>
-function map<T, U>(
-  f: ([k, v]: [string, T]) => U,
-  coll: Record<string, T>
-): Reducible<U>
-
-function map<T, U>(
-  f: (x: T | [string, T]) => U,
-  coll: Reducible<T> | Record<string, T>
-) {
-  return {
-    reduce: <R>(step: (r: R, x: U) => R, init: R) => {
-      const t: Reducible<T> | [string, T][] = coll.reduce
-        ? (coll as Reducible<T>)
-        : Object.entries(coll)
-      // @ts-ignore
-      return t.reduce<R>((r: R, x: T | [string, T]): R => step(r, f(x)), init)
-    },
-  }
+  <T, U>(f: ([k, v]: [string, T]) => U, coll: Record<string, T>): Reducible<U>
 }
 
-export { map }
+export const map: Imap = <T, U>(
+  f: (x: T | [string, T]) => U,
+  coll: Reducible<T> | Record<string, T>
+) =>
+  createReducible(<R>(step: (r: R, x: U) => R, init: R) => {
+    const t: Reducible<T> | [string, T][] = coll.reduce
+      ? (coll as Reducible<T>)
+      : Object.entries(coll)
+
+    return t.reduce<R>((r: R, x: T | [string, T]): R => step(r, f(x)), init)
+  })
 
 // Return memoized function, optionally with hash creating function.
 export const memo = <A extends any[], R>(
@@ -185,8 +167,8 @@ export const race = (...iterables: AsyncIterable<any>[]) => ({
   },
 })
 
-export const range = (a: number, b: number): Reducible<number> => ({
-  reduce: (step, init) => {
+export const range = (a: number, b: number): Reducible<number> =>
+  createReducible((step, init) => {
     let r = init
     let i = a
     while (b === undefined || i < b) {
@@ -195,8 +177,7 @@ export const range = (a: number, b: number): Reducible<number> => ({
     }
 
     return r
-  },
-})
+  })
 
 // sleep for ms milliseconds
 export const sleep = (ms: number): Promise<undefined> =>
@@ -207,26 +188,22 @@ export const sleep = (ms: number): Promise<undefined> =>
   })
 
 // Return result of threading initial value through a series of functions.
-function thread<A, B, R>(x: A, f: (x: A) => B, g: (x: B) => R): R
-function thread<A, B, C, R>(
-  x: A,
-  f: (x: A) => B,
-  g: (x: B) => C,
-  h: (x: C) => R
-): R
-function thread<A, B, C, D, R>(
-  x: A,
-  f: (x: A) => B,
-  g: (x: B) => C,
-  h: (x: C) => D,
-  i: (x: D) => R
-): R
+type Ithread = {
+  <A, B, R>(x: A, f: (x: A) => B, g: (x: B) => R): R
 
-function thread(x: any, ...fs: ((x: any) => any)[]) {
-  return fs.reduce((x, f) => f(x), x)
+  <A, B, C, R>(x: A, f: (x: A) => B, g: (x: B) => C, h: (x: C) => R): R
+
+  <A, B, C, D, R>(
+    x: A,
+    f: (x: A) => B,
+    g: (x: B) => C,
+    h: (x: C) => D,
+    i: (x: D) => R
+  ): R
 }
 
-export { thread }
+export const thread: Ithread = (x: any, ...fs: ((x: any) => any)[]) =>
+  fs.reduce((x, f) => f(x), x)
 
 export const toArray = <T>(coll: Reducible<T>): T[] =>
   Array.isArray(coll)
@@ -236,14 +213,5 @@ export const toArray = <T>(coll: Reducible<T>): T[] =>
 
         return r
       }, [])
-
-export const toObject = <T>(
-  entries: Reducible<[string, T]>
-): Record<string, T> =>
-  entries.reduce<Record<string, T>>((r, [key, val]) => {
-    r[key] = val
-
-    return r
-  }, {})
 
 export const union = <T>(s1: Set<T>, s2: Set<T>) => new Set([...s1, ...s2])

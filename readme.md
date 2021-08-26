@@ -24,6 +24,10 @@
 
 [Crank.js examples as metalui](./crankjs-examples.md)
 
+[The initial rant](./rant.md)
+
+[The long read](./the-long-read.md)
+
 ## Stateless components
 
 ```ts

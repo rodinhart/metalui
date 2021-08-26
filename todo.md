@@ -8,6 +8,4 @@
 - properly fix types for markup etc
   - return type
 - allow style = {} ?
-- how to clear props on DOM node on rerender?
-  - https://github.com/bikeshaving/crank/issues/204
 - put warning/errors where sensible
