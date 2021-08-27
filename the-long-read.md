@@ -17,13 +17,3 @@ The consequence of this is the introduction of (accidental) state, multiple invo
 The result cache needs to be managed, invalidated when input parameters change and destroyed when components go out of scope to avoid memory leaks. Managing cache is complex, even more so when it is coupled to a UI, and puts pressure on the garbage collector.
 
 Finally, UIs are hierarchical: the location of components in the display tree depends on the location on the screen, whether flow or absolute positioning is used, and the position in the display stack (z-index). What tends to happen is that other aspects such as the data models, control logic, and the passing of properties and events are coupled to, and takes the shape of, that hierarchy. This is a coupling you can do without, makes changing the visual layout a heavy job, because all the coupled code has to move with it, and makes it less reusable in other contexts.
-
-## notes
-
-testing
-
-## sketches
-
-`{ data } = useQuery(...)` smells of concurrency, competing for query engine and rendering
-
-multiple passes of the render function now leads to useMemo use.

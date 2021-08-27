@@ -1,1 +1,1 @@
-export default () => ["div", {}, "Lazily loaded"]
+export default ({ message }) => ["div", {}, "Lazily loaded with ", message]

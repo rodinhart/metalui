@@ -1,16 +1,6 @@
-import { createUid, map, sleep } from "./lang"
+import { createUid, map, sleep, Thunk } from "./lang"
 
 declare const glob: Record<string, Record<string, (e: Event) => void>>
-
-const escapeHtml = (() => {
-  const e = document.createElement("div")
-
-  return (s: string) => {
-    e.innerText = s
-
-    return e.innerHTML
-  }
-})()
 
 // e.g. AppProps, PropertyProps etc?
 export type Props = Record<string, any>
@@ -28,47 +18,28 @@ export type Markup<T> =
   | string
   | [string | Component<T>, T, ...Markup<any>[]]
 
+const escapeHtml = (() => {
+  const e = document.createElement("div")
+
+  return (s: string) => {
+    e.innerText = s
+
+    return e.innerHTML
+  }
+})()
+
 export const Fragment = ({ children }: { children: Markup<any>[] }) => [
   "Fragment",
   {},
   ...children,
 ]
 
-// JSONML to XML string
-export const toxml = (
-  el: Element,
-  gkey: string = "GLOBAL",
-  ids: Record<string, (e: Event) => void> = {}
-): string => {
-  if (Array.isArray(el)) {
-    const [name, props, ...children] = el
-    const evented = Object.fromEntries(
-      map<any, [string, any]>(([key, val]) => {
-        if (key.substr(0, 2) !== "on") {
-          return [key, val]
-        } else {
-          const id = key + "-" + createUid()
-          glob[gkey] = ids
-          ids[id] = (event) => val(event)
+export const lazyLoad = <T>(thunk: Thunk<Component<T>>): Component<T> =>
+  async function* (props: T) {
+    const component = await thunk()
 
-          return [key, `glob['${gkey}']['${id}'](event)`]
-        }
-      }, props)
-    )
-
-    const mapped = children.map((c) => toxml(c, gkey, ids))
-
-    if (name === "Fragment") {
-      return mapped.join("")
-    }
-
-    return `<${name} ${Object.entries(evented)
-      .map(([key, val]) => (val !== undefined ? `${key}="${val}"` : key))
-      .join(" ")}>${mapped.join("")}</${name}>`
+    yield [component, props] as Markup<any>
   }
-
-  return el === null ? "" : escapeHtml(String(el))
-}
 
 export const render = async (
   markup: Markup<any>,
@@ -179,4 +150,40 @@ export const render = async (
   }
 
   return markup
+}
+
+// JSONML to XML string
+export const toxml = (
+  el: Element,
+  gkey: string = "GLOBAL",
+  ids: Record<string, (e: Event) => void> = {}
+): string => {
+  if (Array.isArray(el)) {
+    const [name, props, ...children] = el
+    const evented = Object.fromEntries(
+      map<any, [string, any]>(([key, val]) => {
+        if (key.substr(0, 2) !== "on") {
+          return [key, val]
+        } else {
+          const id = key + "-" + createUid()
+          glob[gkey] = ids
+          ids[id] = (event) => val(event)
+
+          return [key, `glob['${gkey}']['${id}'](event)`]
+        }
+      }, props)
+    )
+
+    const mapped = children.map((c) => toxml(c, gkey, ids))
+
+    if (name === "Fragment") {
+      return mapped.join("")
+    }
+
+    return `<${name} ${Object.entries(evented)
+      .map(([key, val]) => (val !== undefined ? `${key}="${val}"` : key))
+      .join(" ")}>${mapped.join("")}</${name}>`
+  }
+
+  return el === null ? "" : escapeHtml(String(el))
 }

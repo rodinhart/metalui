@@ -1,7 +1,7 @@
 module.exports = {
   // devtool: "eval-source-map",
   entry: "./index.ts",
-  mode: "production",
+  mode: "development",
   module: {
     rules: [
       {

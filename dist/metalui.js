@@ -11,30 +11,9 @@ export const Fragment = ({ children }) => [
     {},
     ...children,
 ];
-// JSONML to XML string
-export const toxml = (el, gkey = "GLOBAL", ids = {}) => {
-    if (Array.isArray(el)) {
-        const [name, props, ...children] = el;
-        const evented = Object.fromEntries(map(([key, val]) => {
-            if (key.substr(0, 2) !== "on") {
-                return [key, val];
-            }
-            else {
-                const id = key + "-" + createUid();
-                glob[gkey] = ids;
-                ids[id] = (event) => val(event);
-                return [key, `glob['${gkey}']['${id}'](event)`];
-            }
-        }, props));
-        const mapped = children.map((c) => toxml(c, gkey, ids));
-        if (name === "Fragment") {
-            return mapped.join("");
-        }
-        return `<${name} ${Object.entries(evented)
-            .map(([key, val]) => (val !== undefined ? `${key}="${val}"` : key))
-            .join(" ")}>${mapped.join("")}</${name}>`;
-    }
-    return el === null ? "" : escapeHtml(String(el));
+export const lazyLoad = (thunk) => async function* (props) {
+    const component = await thunk();
+    yield [component, props];
 };
 export const render = async (markup, context = {}) => {
     if (Array.isArray(markup)) {
@@ -108,4 +87,29 @@ export const render = async (markup, context = {}) => {
         return element;
     }
     return markup;
+};
+// JSONML to XML string
+export const toxml = (el, gkey = "GLOBAL", ids = {}) => {
+    if (Array.isArray(el)) {
+        const [name, props, ...children] = el;
+        const evented = Object.fromEntries(map(([key, val]) => {
+            if (key.substr(0, 2) !== "on") {
+                return [key, val];
+            }
+            else {
+                const id = key + "-" + createUid();
+                glob[gkey] = ids;
+                ids[id] = (event) => val(event);
+                return [key, `glob['${gkey}']['${id}'](event)`];
+            }
+        }, props));
+        const mapped = children.map((c) => toxml(c, gkey, ids));
+        if (name === "Fragment") {
+            return mapped.join("");
+        }
+        return `<${name} ${Object.entries(evented)
+            .map(([key, val]) => (val !== undefined ? `${key}="${val}"` : key))
+            .join(" ")}>${mapped.join("")}</${name}>`;
+    }
+    return el === null ? "" : escapeHtml(String(el));
 };

@@ -2,31 +2,31 @@
 
 ## Contents
 
-[Stateless components](#stateless-components)
+[1. Stateless components](#stateless-components)
 
-[Stateful components](#stateful-components)
+[2. Stateful components](#stateful-components)
 
-[Component context](#component-context)
+[3. Component context](#component-context)
 
-[Mutable data](#mutable-data)
+[4. Mutable data](#mutable-data)
 
-[Multiple observables](#multiple-observables)
+[5. Multiple observables](#multiple-observables)
 
 [Virtual scrolling](#virtual-scrolling) _library_
 
 [Loading spinner](#loading-spinner) _library_
 
-[Lazy load components](#lazy-load-components) _library_
+[8. Lazy load components](#lazy-load-components) _library_
 
 ## More documentation
 
-[React examples as metalui](./react-examples.md)
+[A. React examples as metalui](./react-examples.md)
 
-[Crank.js examples as metalui](./crankjs-examples.md)
+[B. Crank.js examples as metalui](./crankjs-examples.md)
 
-[The initial rant](./rant.md)
+[C. The initial rant](./rant.md)
 
-[The long read](./the-long-read.md)
+[Z. The long read](./the-long-read.md)
 
 ## Stateless components
 
@@ -295,11 +295,7 @@ document.body.innerHTML = toxml(await render([App, {}]))
 ## Lazy load components
 
 ```js
-const Lazy = async function* () {
-  const Costly = (await import("./Costly.js")).default
-
-  yield [Costly, {}]
-}
+const Costly = lazyLoad(() => import("./Costly.js").then((r) => r.default))
 
 const App = async function* () {
   const ob = new Observable(false)
@@ -308,7 +304,7 @@ const App = async function* () {
     yield [
       "div",
       {},
-      !val ? "Greedily loaded" : [Lazy, {}],
+      !val ? "Greedily loaded" : [Costly, { message: "greetings!" }],
       ["br", {}],
       ["button", { onclick: () => ob.notify((x) => !x) }, "Switch"],
     ]

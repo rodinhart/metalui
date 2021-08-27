@@ -37,7 +37,7 @@ export declare const map: Imap;
  * Returns a memoized function, optionally with hash creating function.
  */
 export declare const memo: <A extends any[], R>(f: (...args: A) => R, getHash?: ((args: A) => string) | undefined) => (...args: A) => R;
-declare type Thunk<T> = () => Promise<T>;
+export declare type Thunk<T> = () => Promise<T>;
 /**
  * Returns a memoized Thunks.
  */

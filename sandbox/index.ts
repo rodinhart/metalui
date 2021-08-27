@@ -1,74 +1,24 @@
-import {
-  Component,
-  Fragment,
-  Markup,
-  Observable,
-  race,
-  render,
-  sleep,
-  toxml,
-} from "../dist/index"
+import { lazyLoad, Observable, render, toxml } from "../dist/index"
 
 const main = async () => {
-  const disj = <T>(set: Set<T>, ...keys: T[]) => {
-    const r = new Set(set)
-    for (const key of keys) {
-      r.delete(key)
-    }
+  const Costly = lazyLoad(() => import("./Costly.js").then((r) => r.default))
 
-    return r
-  }
+  const App = async function* () {
+    const ob = new Observable(false)
 
-  // Some async data loading
-  const loadItems = async () => {
-    await sleep(42)
-
-    return ["Apples", "Bananas", "Chocolate"]
-  }
-
-  const List = async function* ({ stateOb }) {
-    // Some local state available while the component is alive
-    const onClick = (item) =>
-      stateOb.notify((state) => ({
-        ...state,
-        selected: state.selected.has(item)
-          ? disj(state.selected, item)
-          : new Set([...state.selected, item]),
-      }))
-
-    for await (const { selected } of stateOb) {
-      if (!selected) {
-        return // exit component
-      }
-
-      // Some async data loading
-      const items = await loadItems()
-
+    for await (const val of ob) {
       yield [
         "div",
         {},
-        [
-          "ul",
-          {},
-          ...items.map((item) => [
-            "li",
-            {
-              style: selected.has(item) ? "font-weight: bold;" : "",
-              onclick: () => onClick(item),
-            },
-            item,
-          ]),
-        ],
+        !val ? "Greedily loaded" : [Costly, { message: "greetings!" }],
+        ["br", {}],
+        ["button", { onclick: () => ob.notify((x) => !x) }, "Switch"],
       ]
     }
   }
 
-  const stateOb = new Observable({
-    selected: new Set(["Bananas"]),
-  })
-
   window.glob = {}
-  document.body.innerHTML = toxml(await render([List, { stateOb }]))
+  document.body.innerHTML = toxml(await render([App, {}]))
 }
 
 main()

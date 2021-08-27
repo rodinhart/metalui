@@ -140,7 +140,7 @@ export const memo = <A extends any[], R>(
   }
 }
 
-type Thunk<T> = () => Promise<T>
+export type Thunk<T> = () => Promise<T>
 
 /**
  * Returns a memoized Thunks.
