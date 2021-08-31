@@ -10,3 +10,4 @@
 - allow style = {} ?
 - put warning/errors where sensible
 - API docs
+- Live code sandbox?

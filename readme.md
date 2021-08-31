@@ -14,7 +14,7 @@
 
 [Virtual scrolling](#virtual-scrolling) _library_
 
-[Loading spinner](#loading-spinner) _library_
+[7. Loading spinner](#loading-spinner)
 
 [8. Lazy load components](#lazy-load-components) _library_
 
