@@ -20,13 +20,13 @@
 
 ## More documentation
 
-[A. React examples as metalui](./react-examples.md)
+[A. React examples as metalui](./docs/react-examples.md)
 
-[B. Crank.js examples as metalui](./crankjs-examples.md)
+[B. Crank.js examples as metalui](./docs/crankjs-examples.md)
 
-[C. The initial rant](./rant.md)
+[C. The initial rant](./docs/rant.md)
 
-[Z. The long read](./the-long-read.md)
+[Z. The long read](./docs/the-long-read.md)
 
 ## Stateless components
 
