@@ -1,23 +1,32 @@
-import { lazyLoad, Observable, render, toxml } from "../dist/index"
+import { Observable, race, render, toxml } from "../dist/index"
 
 const main = async () => {
-  const Costly = lazyLoad(() => import("./Costly.js").then((r) => r.default))
-
   const App = async function* () {
-    const ob = new Observable(false)
+    const headsOb = new Observable(0)
+    const tailsOb = new Observable(0)
 
-    for await (const val of ob) {
-      yield [
-        "div",
-        {},
-        !val ? "Greedily loaded" : [Costly, { message: "greetings!" }],
-        ["br", {}],
-        ["button", { onclick: () => ob.notify((x) => !x) }, "Switch"],
-      ]
+    const timer = setInterval(() => {
+      if (Math.random() < 0.5) {
+        headsOb.notify((count) => count + 1)
+      } else {
+        tailsOb.notify((count) => count + 1)
+      }
+    }, 1000)
+
+    try {
+      for await (const [heads, tails] of race(headsOb, tailsOb)) {
+        yield [
+          "ul",
+          {},
+          ["li", {}, `Heads: ${heads}`],
+          ["li", {}, `Tails: ${tails}`],
+        ]
+      }
+    } finally {
+      clearInterval(timer)
     }
   }
 
-  window.glob = {}
   document.body.innerHTML = toxml(await render([App, {}]))
 }
 

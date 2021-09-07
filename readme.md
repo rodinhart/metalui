@@ -202,6 +202,8 @@ const App = async function* () {
 document.body.innerHTML = toxml(await render([App, {}]))
 ```
 
+[see in action](http://rodinhart.nl/metalui/ex-race.html)
+
 ## Virtual scrolling
 
 ```js
