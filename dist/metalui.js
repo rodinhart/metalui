@@ -1,4 +1,5 @@
 import { createUid, map, sleep } from "./lang";
+import { Observable } from "./Observable";
 const escapeHtml = (() => {
     const e = document.createElement("div");
     return (s) => {
@@ -87,6 +88,35 @@ export const render = async (markup, context = {}) => {
         return element;
     }
     return markup;
+};
+export const Scroller = async function* ({ Body, totalHeight, }) {
+    const scrollOb = new Observable(0);
+    const onScroll = (e) => {
+        scrollOb.notify(e.target.scrollTop);
+    };
+    const ref = yield [
+        "div",
+        { style: "height: 100%; position: relative;" },
+    ];
+    yield [
+        "div",
+        { style: "height: 100%; position: relative;" },
+        [
+            "div",
+            {
+                style: "height: 100%; overflow-y: auto; width: 100%",
+                onscroll: onScroll,
+            },
+            ["div", { style: `height: ${totalHeight}px;` }],
+        ],
+        [
+            "div",
+            {
+                style: "height: 100%; overflow-y: hidden; position: absolute; top: 0px; width: calc(100% - 18px);",
+            },
+            [Body, { height: (ref && ref.offsetHeight) || 100, scrollOb }],
+        ],
+    ];
 };
 // JSONML to XML string
 export const toxml = (el, gkey = "GLOBAL", ids = {}) => {

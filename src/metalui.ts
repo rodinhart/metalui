@@ -1,4 +1,5 @@
 import { createUid, map, sleep, Thunk } from "./lang"
+import { Observable } from "./Observable"
 
 declare const glob: Record<string, Record<string, (e: Event) => void>>
 
@@ -150,6 +151,46 @@ export const render = async (
   }
 
   return markup
+}
+
+export const Scroller: Component<any> = async function* ({
+  Body,
+  totalHeight,
+}: {
+  Body: Component<any>
+  totalHeight: number
+}) {
+  const scrollOb = new Observable(0)
+
+  const onScroll = (e: any) => {
+    scrollOb.notify(e.target.scrollTop)
+  }
+
+  const ref = yield [
+    "div",
+    { style: "height: 100%; position: relative;" },
+  ] as Markup<any>
+
+  yield [
+    "div",
+    { style: "height: 100%; position: relative;" },
+    [
+      "div",
+      {
+        style: "height: 100%; overflow-y: auto; width: 100%",
+        onscroll: onScroll,
+      },
+      ["div", { style: `height: ${totalHeight}px;` }],
+    ],
+    [
+      "div",
+      {
+        style:
+          "height: 100%; overflow-y: hidden; position: absolute; top: 0px; width: calc(100% - 18px);",
+      },
+      [Body, { height: (ref && ref.offsetHeight) || 100, scrollOb }],
+    ],
+  ] as Markup<any>
 }
 
 // JSONML to XML string

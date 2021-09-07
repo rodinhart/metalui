@@ -1,32 +1,38 @@
-import { Observable, race, render, toxml } from "../dist/index"
+import { render, Scroller, toxml } from "../dist/index"
 
 const main = async () => {
-  const App = async function* () {
-    const headsOb = new Observable(0)
-    const tailsOb = new Observable(0)
+  const App = () => {
+    const data = new Array(100000)
+      .fill(0)
+      .map(() => Math.random().toString(36).substr(2))
 
-    const timer = setInterval(() => {
-      if (Math.random() < 0.5) {
-        headsOb.notify((count) => count + 1)
-      } else {
-        tailsOb.notify((count) => count + 1)
-      }
-    }, 1000)
+    const Rows = async function* ({ height, scrollOb }) {
+      for await (const scroll of scrollOb) {
+        const start = Math.round(scroll / 19)
+        const len = Math.ceil(height / 19)
 
-    try {
-      for await (const [heads, tails] of race(headsOb, tailsOb)) {
         yield [
-          "ul",
+          "div",
           {},
-          ["li", {}, `Heads: ${heads}`],
-          ["li", {}, `Tails: ${tails}`],
+          ...data
+            .slice(start, start + len)
+            .map((row, i) => [
+              "div",
+              { style: "height: 19px;" },
+              `${1 + start + i}: ${row}`,
+            ]),
         ]
       }
-    } finally {
-      clearInterval(timer)
     }
+
+    return [
+      "div",
+      { style: "width: 200px; height: 400px;" },
+      [Scroller, { totalHeight: data.length * 19, Body: Rows }],
+    ]
   }
 
+  window.glob = {}
   document.body.innerHTML = toxml(await render([App, {}]))
 }
 

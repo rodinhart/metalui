@@ -8,5 +8,6 @@ export declare const Fragment: ({ children }: {
 }) => ({} | null)[];
 export declare const lazyLoad: <T>(thunk: Thunk<Component<T>>) => Component<T>;
 export declare const render: (markup: Markup<any>, context?: Record<string, any>) => Promise<Element>;
+export declare const Scroller: Component<any>;
 export declare const toxml: (el: Element, gkey?: string, ids?: Record<string, (e: Event) => void>) => string;
 export {};

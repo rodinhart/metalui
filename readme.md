@@ -12,11 +12,11 @@
 
 [5. Multiple observables](#multiple-observables)
 
-[Virtual scrolling](#virtual-scrolling) _library_
+[6. Virtual scrolling](#virtual-scrolling)
 
 [7. Loading spinner](#loading-spinner)
 
-[8. Lazy load components](#lazy-load-components) _library_
+[8. Lazy load components](#lazy-load-components)
 
 ## More documentation
 
@@ -207,37 +207,6 @@ document.body.innerHTML = toxml(await render([App, {}]))
 ## Virtual scrolling
 
 ```js
-const Scroller = async function* ({ Body, totalHeight }) {
-  const scrollOb = new Observable(0)
-
-  const onScroll = (e) => {
-    scrollOb.notify(e.target.scrollTop)
-  }
-
-  const ref = yield ["div", { style: "height: 100%; position: relative;" }]
-
-  yield [
-    "div",
-    { style: "height: 100%; position: relative;" },
-    [
-      "div",
-      {
-        style: "height: 100%; overflow-y: auto; width: 100%",
-        onscroll: onScroll,
-      },
-      ["div", { style: `height: ${totalHeight}px;` }],
-    ],
-    [
-      "div",
-      {
-        style:
-          "height: 100%; overflow-y: hidden; position: absolute; top: 0px; width: calc(100% - 18px);",
-      },
-      [Body, { height: (ref && ref.offsetHeight) || 100, scrollOb }],
-    ],
-  ]
-}
-
 const App = () => {
   const data = new Array(100000)
     .fill(0)
