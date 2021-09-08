@@ -1,4 +1,4 @@
-import { Component, Markup, Props } from "metalui"
+import { Component, Markup, Props } from "../dist/index"
 
 export const createElement = (
   tag: string | Component<any>,

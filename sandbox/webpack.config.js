@@ -1,11 +1,11 @@
 module.exports = {
   // devtool: "eval-source-map",
   entry: "./index.ts",
-  mode: "production",
+  mode: "development",
   module: {
     rules: [
       {
-        test: /(\.ts|\.js)$/,
+        test: /(\.tsx?|\.js)$/,
         exclude: new RegExp(
           `node_modules`
         ),
@@ -13,14 +13,14 @@ module.exports = {
           loader: require.resolve("babel-loader"),
 
           options: {
-            presets: ["@babel/typescript"],
+            presets: ["@babel/typescript", "@babel/react"],
           },
         },
       },
     ],
   },
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".js", ".tsx"],
   },
   target: "web",
 

@@ -11,3 +11,4 @@
 - put warning/errors where sensible
 - API docs
 - Live code sandbox?
+- react bridge: allow () => <div>Hello</div> components?
