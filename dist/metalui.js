@@ -51,7 +51,7 @@ export const renderǃ = async (markup, context = {}) => {
             if (key.startsWith("on")) {
                 node.addEventListener(key.substr(2), value);
             }
-            else {
+            else if (!key.startsWith("$")) {
                 node.setAttribute(key, String(value)); // what about non-string values?
             }
         }

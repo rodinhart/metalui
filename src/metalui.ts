@@ -88,7 +88,7 @@ export const renderǃ = async (
     for (const [key, value] of Object.entries(props)) {
       if (key.startsWith("on")) {
         node.addEventListener(key.substr(2), value as any)
-      } else {
+      } else if (!key.startsWith("$")) {
         node.setAttribute(key, String(value)) // what about non-string values?
       }
     }

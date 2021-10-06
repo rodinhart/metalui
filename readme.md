@@ -37,6 +37,13 @@ const List = ({ title, items }) => [
   ["div", {}, `${title} (${items.length})`],
   ...items.map((item) => ["li", {}, item]),
 ]
+
+document.body.replaceChildren(
+  ...(await renderǃ([
+    List,
+    { title: "Todo", items: ["Apple", "Banana", "Chocolate"] },
+  ]))
+)
 ```
 
 [see in action](http://rodinhart.nl/metalui/ex-stateless.html)
@@ -101,7 +108,7 @@ const stateOb = new Observable({
   selected: new Set(["Bananas"]),
 })
 
-document.body.innerHTML = toxml(await render([List, { stateOb }]))
+document.body.replaceChildren(...(await renderǃ([List, { stateOb }])))
 ```
 
 [see in action](http://rodinhart.nl/metalui/ex-stateful.html)
@@ -123,7 +130,7 @@ const App = () => [
   [WhatSize, { number: 3 }],
 ]
 
-document.body.innerHTML = toxml(await render([App, { $size: "small" }]))
+document.body.replaceChildren(...(await renderǃ([App, { $size: "small" }])))
 
 // Size here at 1 is small
 // Size here at 2 is large
@@ -154,7 +161,7 @@ const Summary = async function* ({ dataOb }) {
   }
 }
 
-document.body.innerHTML = toxml(await render([Summary, { dataOb }]))
+document.body.replaceChildren(...(await renderǃ([Summary, { dataOb }])))
 
 setTimeout(() => {
   dataOb.notify(({ column, revision }) => {
@@ -199,7 +206,7 @@ const App = async function* () {
   }
 }
 
-document.body.innerHTML = toxml(await render([App, {}]))
+document.body.replaceChildren(...(await renderǃ([App, {}])))
 ```
 
 [see in action](http://rodinhart.nl/metalui/ex-race.html)
@@ -238,7 +245,7 @@ const App = () => {
   ]
 }
 
-document.body.innerHTML = toxml(await render([App, {}]))
+document.body.replaceChildren(...(await renderǃ([App, {}])))
 ```
 
 [see in action](http://rodinhart.nl/metalui/ex-scroller.html)
@@ -258,7 +265,7 @@ const App = async function* () {
   yield ["div", {}, ["ul", {}, ...list.map((x) => ["li", {}, x])]]
 }
 
-document.body.innerHTML = toxml(await render([App, {}]))
+document.body.replaceChildren(...(await renderǃ([App, {}])))
 ```
 
 [see in action](http://rodinhart.nl/metalui/ex-loading.html)
