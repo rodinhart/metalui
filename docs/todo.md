@@ -1,14 +1,27 @@
+- tests!
+- fix examples
+- fix react-bridge
 - allow preventDefault on events
   - should already work
+  - try for form submit?
   - a event wrapper library for cross browser compatibility?
 - forms (9. Forms)
   - rerendering at wrong level
-- fix glob
+  - do we need controlled components?
 - await notify?
 - properly fix types for markup etc
   - return type
 - allow style = {} ?
 - put warning/errors where sensible
 - API docs
+  - Fragment
+  - lazyLoad
+  - Observable
+  - race
+  - render
+  - Scroller
+  - add types?
 - Live code sandbox?
 - react bridge: allow () => <div>Hello</div> components?
+- What is errorBoundary need render and/or throws error?
+- ǃ (special char)
