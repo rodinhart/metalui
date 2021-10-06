@@ -21,7 +21,7 @@ metalui
 ```js
 const Greeting = ({ name = "World" }) => ["div", {}, `Hello ${name}`]
 
-document.body.innerHTML = toxml(await render([Greeting, {}]))
+document.body.replaceChildren(...(await renderǃ([Greeting, {}])))
 ```
 
 ### A Stateful Component
@@ -66,7 +66,7 @@ const Timer = async function* () {
   }
 }
 
-document.body.innerHTML = toxml(await render([Timer, {}]))
+document.body.replaceChildren(...(await renderǃ([Timer, {}])))
 ```
 
 ### An Async Component
@@ -102,7 +102,7 @@ const QuoteOfTheDay = async function* () {
   ]
 }
 
-document.body.innerHTML = toxml(await render([QuoteOfTheDay, {}]))
+document.body.replaceChildren(...(await renderǃ([QuoteOfTheDay, {}])))
 ```
 
 # Components
@@ -152,7 +152,7 @@ const Counter = async function* ({ messageOb }) {
 
 const messageOb = new Observable("The count is now:")
 
-document.body.innerHTML = toxml(await render([Counter, { messageOb }]))
+document.body.replaceChildren(...(await renderǃ([Counter, { messageOb }])))
 
 console.log(document.body.innerHTML) // "<div>The count is now: 1</div>"
 

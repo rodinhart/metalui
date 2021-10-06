@@ -13,9 +13,7 @@ ReactDOM.render(<h1>Hello, world!</h1>, document.getElementById("root"))
 metalui
 
 ```js
-document.getElementById("app").innerHTML = toxml(
-  await render(["h1", {}, "Hello, world!"])
-)
+document.body.replaceChildren(...(await renderǃ(["h1", {}, "Hello, world!"])))
 ```
 
 ## 2. Introducing JSX
@@ -35,7 +33,7 @@ metalui
 const name = "Josh Perez"
 const element = ["h1", {}, `Hello, ${name}`]
 
-document.getElementById("app").innerHTML = toxml(await render(element))
+document.body.replaceChildren(...(await renderǃ(element)))
 ```
 
 React
@@ -69,7 +67,7 @@ const user = {
 
 const element = ["h1", {}, `Hello, ${formatName(user)}`]
 
-document.getElementById("app").innerHTML = toxml(await render(element))
+document.body.replaceChildren(...(await renderǃ(element)))
 ```
 
 React
@@ -184,7 +182,7 @@ async function tick() {
     ["h1", {}, "Hello, world!"],
     ["h2", {}, `It is ${new Date().toLocaleTimeString()}.`],
   ]
-  document.getElementById("app").innerHTML = toxml(await render(element))
+  document.body.replaceChildren(...(await renderǃ(element)))
 }
 
 setInterval(tick, 1000)
@@ -207,14 +205,11 @@ metalui
 
 ```js
 function Welcome(props) {
-  return ["h1", {}, `Hello, ${props.name}]`
+  return ["h1", {}, `Hello, ${props.name}`]
 }
 
-const element = [Welcome, {name:"Sara"}]
-ReactDOM.render(
-  element,
-  document.getElementById("app").innerHTML = toxml(await render(element))
-);
+const element = [Welcome, { name: "Sara" }]
+document.body.replaceChildren(...(await renderǃ(element)))
 ```
 
 React
@@ -254,7 +249,7 @@ function App() {
   ]
 }
 
-document.getElementById("app").innerHTML = toxml(await render([App, {}]))
+document.body.replaceChildren(...(await renderǃ([App, {}])))
 ```
 
 ## 5. State and Lifecycle
@@ -319,7 +314,7 @@ const Clock = async function* () {
   }
 }
 
-document.getElementById("app").innerHTML = toxml(await render([Clock, {}]))
+document.body.replaceChildren(...(await renderǃ([Clock, {}])))
 ```
 
 ## 6. Handling Events
@@ -403,18 +398,16 @@ const LoginControl = async function* () {
   for await (const { isLoggedIn } of stateOb) {
     let button
     if (isLoggedIn) {
-      button = [LogoutButton, { onClick: handleLogoutClick }]
+      button = [LogoutButton, { onclick: handleLogoutClick }]
     } else {
-      button = [LoginButton, { onClick: handleLoginClick }]
+      button = [LoginButton, { onclick: handleLoginClick }]
     }
 
     yield ["div", {}, [Greeting, { isLoggedIn }], button]
   }
 }
 
-document.getElementById("app").innerHTML = toxml(
-  await render([LoginControl, {}])
-)
+document.body.replaceChildren(...(await renderǃ([LoginControl, {}])))
 ```
 
 React
@@ -457,8 +450,8 @@ const Mailbox = (props) => {
 
 const messages = ["React", "Re: React", "Re:Re: React"]
 
-document.getElementById("app").innerHTML = toxml(
-  await render([Mailbox, { unreadMessages: messages }])
+document.body.replaceChildren(
+  ...(await renderǃ([Mailbox, { unreadMessages: messages }]))
 )
 ```
 
@@ -492,9 +485,7 @@ const NumberList = (props) => {
 
 const numbers = [1, 2, 3, 4, 5]
 
-document.getElementById("app").innerHTML = toxml(
-  await render([NumberList, { numbers }])
-)
+document.body.replaceChildren(...(await renderǃ([NumberList, { numbers }])))
 ```
 
 React
@@ -523,9 +514,7 @@ const NumberList = (props) => {
 
 const numbers = [1, 2, 3, 4, 5]
 
-document.getElementById("app").innerHTML = toxml(
-  await render([NumberList, { numbers }])
-)
+document.body.replaceChildren(...(await renderǃ([NumberList, { numbers }])))
 ```
 
 ## 9. Forms
@@ -615,7 +604,7 @@ const NameForm = async function* () {
   }
 }
 
-document.body.innerHTML = toxml(await render([NameForm, {}]))
+document.body.replaceChildren(...(await renderǃ([NameForm, {}])))
 ```
 
 ## 11. Composition vs Inheritance

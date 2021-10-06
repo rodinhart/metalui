@@ -1,70 +1,52 @@
 import { Observable, renderǃ, sleep } from "../dist/index"
 
 const main = async () => {
-  const disj = <T>(set: Set<T>, ...keys: T[]) => {
-    const r = new Set(set)
-    for (const key of keys) {
-      r.delete(key)
-    }
+  const NameForm = async function* () {
+    const stateOb = new Observable({ name: "" })
 
-    return r
-  }
-
-  // Some async data loading
-  const loadItems = async () => {
-    await sleep(42)
-
-    return ["Apples", "Bananas", "Chocolate"]
-  }
-
-  const List = async function* ({
-    stateOb,
-  }: {
-    stateOb: Observable<{
-      selected: Set<string>
-    }>
-  }) {
-    // Some local state available while the component is alive
-    const onClick = (item) =>
+    const handleChange = (e) => {
       stateOb.notify((state) => ({
         ...state,
-        selected: state.selected.has(item)
-          ? disj(state.selected, item)
-          : new Set([...state.selected, item]),
+        name: e.target.value,
       }))
+    }
 
-    for await (const { selected } of stateOb) {
-      if (!selected) {
-        return // exit component
-      }
+    const handleSubmit = (e) => {
+      alert(`A name was submitted: ${stateOb.value.name}`)
+      e.preventDefault()
+    }
 
-      // Some async data loading
-      const items = await loadItems()
-
+    for await (const state of stateOb) {
       yield [
-        "div",
-        {},
+        "form",
+        {
+          onsubmit: handleSubmit,
+        },
         [
-          "ul",
+          "label",
           {},
-          ...items.map((item) => [
-            "li",
+          "Name:",
+          [
+            "input",
             {
-              style: selected.has(item) ? "font-weight: bold;" : "",
-              onclick: () => onClick(item),
+              type: "text",
+              value: state.name,
+              onchange: handleChange,
             },
-            item,
-          ]),
+          ],
+        ],
+        [
+          "input",
+          {
+            type: "submit",
+            value: "Submit",
+          },
         ],
       ]
     }
   }
 
-  const stateOb = new Observable({
-    selected: new Set(["Bananas"]),
-  })
-
-  document.body.replaceChildren(...(await renderǃ([List, { stateOb }])))
+  document.body.replaceChildren(...(await renderǃ([NameForm, {}])))
 }
 
 main()
