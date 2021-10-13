@@ -24,7 +24,7 @@
 
 [B. Crank.js examples as metalui](./docs/crankjs-examples.md)
 
-[C. The initial rant](./docs/rant.md)
+[C. The initial rant](./docs/initial-rant.md)
 
 [Z. The long read](./docs/the-long-read.md)
 
@@ -289,5 +289,5 @@ const App = async function* () {
   }
 }
 
-document.body.innerHTML = toxml(await render([App, {}]))
+document.body.replaceChildren(...(await renderǃ([App, {}])))
 ```

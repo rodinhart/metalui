@@ -1,4 +1,4 @@
-import { createUid, map, sleep, Thunk } from "./lang"
+import { sleep, Thunk } from "./lang"
 import { Observable } from "./Observable"
 
 declare const glob: Record<string, Record<string, (e: Event) => void>>
@@ -8,26 +8,20 @@ export type Props = Record<string, any>
 
 type Element = null | boolean | number | string | [string, Props, ...Element[]]
 
-export type Component<T extends Props> =
-  | ((props: T) => Markup<any>)
-  | ((props: T) => AsyncGenerator<Markup<any>, void, HTMLElement>)
+export type SyncComponent<T extends Props> = (props: T) => Markup<any>
+export type AsyncComponent<T extends Props> = (
+  props: T
+) => AsyncGenerator<Markup<any>, void, HTMLElement>
+
+export type Component<T extends Props> = SyncComponent<T> | AsyncComponent<T>
 
 export type Markup<T> =
   | null
   | boolean
   | number
   | string
-  | [string | Component<T>, T, ...Markup<any>[]]
-
-const escapeHtml = (() => {
-  const e = document.createElement("div")
-
-  return (s: string) => {
-    e.innerText = s
-
-    return e.innerHTML
-  }
-})()
+  | [string, Props, ...Markup<any>[]]
+  | [Component<T>, T, ...Markup<any>[]]
 
 export const Fragment = ({ children }: { children: Markup<any>[] }) => [
   "Fragment",

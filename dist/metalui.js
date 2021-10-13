@@ -1,12 +1,5 @@
 import { sleep } from "./lang";
 import { Observable } from "./Observable";
-const escapeHtml = (() => {
-    const e = document.createElement("div");
-    return (s) => {
-        e.innerText = s;
-        return e.innerHTML;
-    };
-})();
 export const Fragment = ({ children }) => [
     "Fragment",
     {},
