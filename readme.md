@@ -18,6 +18,8 @@
 
 [8. Lazy load components](#lazy-load-components)
 
+[9. DOM Reference](#dom-reference)
+
 ## More documentation
 
 [A. React examples as metalui](./docs/react-examples.md)
@@ -290,4 +292,18 @@ const App = async function* () {
 }
 
 document.body.replaceChildren(...(await renderǃ([App, {}])))
+```
+
+## DOM Reference
+
+```js
+const App = async function* ({ name }) {
+  const canvas = yield ["canvas", { width: 200, height: 20 }]
+  const g = canvas.getContext("2d")
+  g.fillText(name, 0, 15)
+}
+
+document.body.replaceChildren(
+  ...(await renderǃ([App, { name: "Baby Driver" }]))
+)
 ```
