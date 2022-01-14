@@ -1,3 +1,14 @@
+- example/docs error boundary
+  - make error boundary part of context ? $errorBoundary
+- scrolling while editing
+  - virtual scrolling, when scrolling or even scrolling offscreen will edit "state" be remembered?
+- previous state management, like anchor
+  - state related to last action
+- background search
+  - CSP - search is now process
+    - needs to let caller know when done
+    - needs to know when to cancel/reset search
+- doc typescript
 - tests!
 - fix react-bridge
 - forms (9. Forms)
@@ -14,7 +25,6 @@
 - allow style = {} ?
 - put warning/errors where sensible
 - API docs
-  - Fragment
   - lazyLoad
   - Observable
   - race
@@ -24,9 +34,9 @@
   - add types?
 - Live code sandbox?
 - react bridge: allow () => <div>Hello</div> components?
-- What is errorBoundary need render and/or throws error?
 - ǃ (special char)
 - a event wrapper library for cross browser compatibility?
+- global progress veil/bar, can it be done
 
 ## Notes
 

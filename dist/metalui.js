@@ -30,7 +30,9 @@ export const renderǃ = async (markup, context = {}) => {
             }
         }
         catch (e) {
+            // @ts-ignore
             if (props.errorBoundary) {
+                // @ts-ignore
                 return [document.createTextNode(String(props.errorBoundary))];
             }
             throw e;

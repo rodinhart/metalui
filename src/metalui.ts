@@ -1,16 +1,17 @@
 import { sleep, Thunk } from "./lang"
 import { Observable } from "./Observable"
 
-declare const glob: Record<string, Record<string, (e: Event) => void>>
-
 // e.g. AppProps, PropertyProps etc?
 export type Props = Record<string, any>
+type ChildrenProp = { children: Markup<any>[] }
 
 type Element = null | boolean | number | string | [string, Props, ...Element[]]
 
-export type SyncComponent<T extends Props> = (props: T) => Markup<any>
+export type SyncComponent<T extends Props> = (
+  props: T & ChildrenProp
+) => Markup<any>
 export type AsyncComponent<T extends Props> = (
-  props: T
+  props: T & ChildrenProp
 ) => AsyncGenerator<Markup<any>, void, HTMLElement>
 
 export type Component<T extends Props> = SyncComponent<T> | AsyncComponent<T>
@@ -23,7 +24,7 @@ export type Markup<T> =
   | [string, Props, ...Markup<any>[]]
   | [Component<T>, T, ...Markup<any>[]]
 
-export const Fragment = ({ children }: { children: Markup<any>[] }) => [
+export const Fragment: SyncComponent<{}> = ({ children }: ChildrenProp) => [
   "Fragment",
   {},
   ...children,
@@ -36,8 +37,8 @@ export const lazyLoad = <T>(thunk: Thunk<Component<T>>): Component<T> =>
     yield [component, props] as Markup<any>
   }
 
-export const renderǃ = async (
-  markup: Markup<any>,
+export const renderǃ = async <T>(
+  markup: Markup<T>,
   context: Record<string, any> = {}
 ): Promise<Node[]> => {
   // "Hello World"
@@ -66,7 +67,9 @@ export const renderǃ = async (
         mapped.push(...(await renderǃ(child, newContext)))
       }
     } catch (e) {
+      // @ts-ignore
       if (props.errorBoundary) {
+        // @ts-ignore
         return [document.createTextNode(String(props.errorBoundary))]
       }
 
@@ -94,7 +97,8 @@ export const renderǃ = async (
     return [node]
   }
 
-  const iterator = tag({ ...newContext, ...props, children })
+  const iterator = tag({ ...newContext, ...props, children } as T &
+    ChildrenProp)
 
   // [function(), {}, ...]
   if (

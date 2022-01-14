@@ -22,11 +22,13 @@
 
 ## More documentation
 
-[A. React examples as metalui](./docs/react-examples.md)
+[A. API](./docs/api.md)
 
-[B. Crank.js examples as metalui](./docs/crankjs-examples.md)
+[B. React examples as metalui](./docs/react-examples.md)
 
-[C. The initial rant](./docs/initial-rant.md)
+[C. Crank.js examples as metalui](./docs/crankjs-examples.md)
+
+[D. The initial rant](./docs/initial-rant.md)
 
 [Z. The long read](./docs/the-long-read.md)
 
