@@ -19,7 +19,7 @@ const main = async () => {
     }
 
   document.body.replaceChildren(
-    ...(await renderǃ([App, { prefixOb: new Observable(42) }]))
+    ...(await renderǃ([App, { prefixOb: new Observable(42) }, "Hello"]))
   )
 }
 

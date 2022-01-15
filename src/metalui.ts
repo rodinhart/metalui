@@ -1,15 +1,13 @@
 import { sleep, Thunk } from "./lang"
 import { Observable } from "./Observable"
 
-// e.g. AppProps, PropertyProps etc?
 export type Props = Record<string, any>
 type ChildrenProp = { children: Markup<any>[] }
-
-type Element = null | boolean | number | string | [string, Props, ...Element[]]
 
 export type SyncComponent<T extends Props> = (
   props: T & ChildrenProp
 ) => Markup<any>
+
 export type AsyncComponent<T extends Props> = (
   props: T & ChildrenProp
 ) => AsyncGenerator<Markup<any>, void, HTMLElement>

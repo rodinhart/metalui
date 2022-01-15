@@ -2,7 +2,7 @@
 
 ## AsyncComponent<T>
 
-The type for an asynchronous component.
+The type for an asynchronous component. There is an implied prop `children` representing the children.
 
 ```ts
 const Prefixed: AsyncComponent<{ prefixOb: Observable<number> }> =

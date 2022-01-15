@@ -1,6 +1,6 @@
 import { compose } from "./lang"
 
-export interface Functor<T> {
+interface Functor<T> {
   map: <R>(f: (x: T) => R) => Functor<R>
 }
 
