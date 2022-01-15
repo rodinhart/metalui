@@ -37,6 +37,8 @@
 - ǃ (special char)
 - a event wrapper library for cross browser compatibility?
 - global progress veil/bar, can it be done
+- more realistic examples in API
+- document lenses
 
 ## Notes
 

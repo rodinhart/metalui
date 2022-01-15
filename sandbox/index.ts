@@ -5,6 +5,7 @@ import {
   Markup,
   Observable,
   Props,
+  race,
   renderǃ,
   SyncComponent,
 } from "../dist/index"
@@ -20,35 +21,8 @@ const main = async () => {
     ...(await renderǃ([App, {}, [Temp, {}], [Temp, {}]]))
   )
 
-  //
-  const stateOb = new Observable({
-    color: "red",
-    shapes: {
-      rect: true,
-      triangle: false,
-    },
-  })
-
-  setTimeout(() => {
-    stateOb.notify((state) => ({
-      ...state,
-      color: "green",
-    }))
-  }, 1000)
-
-  setTimeout(() => {
-    stateOb.notify((state) => ({
-      ...state,
-      shapes: {
-        ...state.shapes,
-        triangle: true,
-      },
-    }))
-  }, 2000)
-
-  for await (const state of stateOb.focus(lenses.grind("shapes"))) {
-    console.log(JSON.stringify(state))
-  }
+  const el = await renderǃ(["span", { style: "color: red;" }, "Hello", "World"])
+  console.log(el.length, el[0].tagName, el[0].innerText)
 }
 
 main()
