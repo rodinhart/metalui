@@ -33,6 +33,46 @@ Renders a collection of child components without any containing element.
 const WithoutContainingDiv = ({ children }) => [Fragment, {}, ...children]
 ```
 
+## lenses
+
+A lens enables you to focus on part of a data structure and view, update or set the associated value. Lenses are functional in the sense no data is ever mutated, and lenses are composable to allow focus deep into data.
+
+```js
+const data = {
+  name: "Brian",
+  role: "Dev",
+}
+
+const lens = lenses.prop("role")
+
+lenses.view(data, lens) // "Dev"
+lenses.over(data, lens, (role) => role.toUpperCase()) // { name: "Brian", role: "DEV" }
+```
+
+Here's how function composition operates on lenses
+
+```js
+const data = {
+  name: "Brian",
+  friends: [{ name: "Dennis" }, { name: "Claude" }, { name: "Donald" }],
+}
+
+const lens = compose(
+  lenses.prop("friends"),
+  lenses.prop(1),
+  lenses.prop("name")
+)
+
+lenses.view(data, lens) // "Claude"
+lenses.over(data, lens, (name) => name.toUpperCase())
+/*
+  {
+    name: "Brian",
+    friends: [{ name: "Dennis" }, { name: "CLAUDE" }, { name: "Donald" }],
+  }
+*/
+```
+
 ## Observable
 
 An observable represents a succession of states. Each new state is constructed from the previous state. Ideally the states are value, that is, they are immutable.
@@ -58,7 +98,7 @@ This will log `[2, 3, 5]` and after about a second `[2, 3, 5, 7]`
 
 ### focus
 
-Sometimes one is only interested in changes to some subset of the data structure in the observable. To specify the portion to focus on, [lenses](https://bartoszmilewski.com/2021/04/01/traversals-1-van-laarhoven-and-existentials/) are used. Note that despite the focus, the observable value exposed is still the full value, not the subset.
+Sometimes one is only interested in changes to some subset of the data structure in the observable. To specify the portion to focus on, [lenses](#lenses) are used. Note that despite the focus, the observable value exposed is still the full value, not the subset.
 
 ```js
 const stateOb = {

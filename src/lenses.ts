@@ -36,10 +36,11 @@ export const grind = (...keys: string[]): Lens<any, any, any, any> =>
   // @ts-ignore
   compose(...keys.map(prop))
 
-export const over =
-  <s, t, a, b>(lens: Lens<s, t, a, b>, f: (x: a) => b) =>
-  (obj: s): t =>
-    (lens((x) => new Identity(f(x)))(obj) as Identity<t>).x
+export const over = <s, t, a, b>(
+  obj: s,
+  lens: Lens<s, t, a, b>,
+  f: (x: a) => b
+): t => (lens((x) => new Identity(f(x)))(obj) as Identity<t>).x
 
 export const prop =
   (key: string): Lens<any, any, any, any> =>

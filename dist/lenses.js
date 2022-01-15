@@ -18,7 +18,7 @@ class Const {
 export const grind = (...keys) => 
 // @ts-ignore
 compose(...keys.map(prop));
-export const over = (lens, f) => (obj) => lens((x) => new Identity(f(x)))(obj).x;
+export const over = (obj, lens, f) => lens((x) => new Identity(f(x)))(obj).x;
 export const prop = (key) => (f) => (obj) => f(obj && obj[key]).map((val) => ({
     ...obj,
     [key]: val,
