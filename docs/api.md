@@ -1,3 +1,18 @@
+# API
+
+## AsyncComponent<T>
+
+The type for an asynchronous component.
+
+```ts
+const Prefixed: AsyncComponent<{ prefixOb: Observable<number> }> =
+  async function* ({ prefixOb, children }) {
+    for await (const prefix of prefixOb) {
+      yield ["div", {}, ["h3", {}, prefix.toFixed(2)], ...children]
+    }
+  }
+```
+
 ## errorBoundary
 
 If any of the children throw an error when rendering, the container will display the string specified by `errorBoundary` instead of throwing the error.
@@ -54,6 +69,23 @@ const stateOb = {
   },
 }
 
+setTimeout(() => {
+  stateOb.notify((state) => ({
+    ...state,
+    color: "green",
+  }))
+}, 1000)
+
+setTimeout(() => {
+  stateOb.notify((state) => ({
+    ...state,
+    shapes: {
+      ...state.shapes,
+      triangle: true,
+    },
+  }))
+}, 2000)
+
 for await (const state of stateOb.focus()) {
   console.log(state)
 }
@@ -98,3 +130,31 @@ This will log `1`, `"SPAN"` and `"HelloWorld"`.
 ## Scroller
 
 Scroller is a component that takes a Body component and a total height as its props. It then constructs a scrollable vertical window into a virtual canvas of total height. It renders the Body in the window giving it the relevant height of the window and vertical offset of the window. [Here](../readme.md#virtual-scrolling) is a working example.
+
+'
+
+## SyncComponent<T>
+
+The type for a synchronous component.
+
+```ts
+const List: SyncComponent<{ title: string; items: string[] }> = ({
+  title,
+  items,
+}) => [
+  "div",
+  {},
+  ["div", {}, `${title} (${items.length})`],
+  ...items.map((item): Markup<any> => ["li", {}, item]),
+]
+```
+
+There is an implied prop `children` representing the children.
+
+```ts
+const Reverse: SyncComponent<{}> = ({ children }) => [
+  "div",
+  {},
+  ...children.slice().reverse(),
+]
+```

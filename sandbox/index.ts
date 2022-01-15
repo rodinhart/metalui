@@ -11,18 +11,16 @@ import {
 } from "../dist/index"
 
 const main = async () => {
-  const Temp: SyncComponent<{}> = () => ["div", {}, "Hello"]
-
-  const App: SyncComponent<{}> = ({ children }) => {
-    return [Fragment, {}, ...children]
-  }
+  const App: AsyncComponent<{ prefixOb: Observable<number> }> =
+    async function* ({ prefixOb, children }) {
+      for await (const prefix of prefixOb) {
+        yield ["div", {}, ["h3", {}, prefix.toFixed(2)], ...children]
+      }
+    }
 
   document.body.replaceChildren(
-    ...(await renderǃ([App, {}, [Temp, {}], [Temp, {}]]))
+    ...(await renderǃ([App, { prefixOb: new Observable(42) }]))
   )
-
-  const el = await renderǃ(["span", { style: "color: red;" }, "Hello", "World"])
-  console.log(el.length, el[0].tagName, el[0].innerText)
 }
 
 main()
