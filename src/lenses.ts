@@ -32,6 +32,14 @@ export type Lens<s, t, a, b> = (
   f: (x: a) => Functor<b>
 ) => (obj: s) => Functor<t>
 
+export const index =
+  (ix: number): Lens<any, any, any, any> =>
+  <a, b>(f: (x: a) => Functor<b>) =>
+  (obj: a[]) =>
+    f(obj && obj[ix]).map((val) =>
+      (obj || []).map((x, i) => (i !== ix ? x : val))
+    )
+
 export const grind = (...keys: string[]): Lens<any, any, any, any> =>
   // @ts-ignore
   compose(...keys.map(prop))

@@ -49,7 +49,7 @@ export const conj = <T>(coll: Set<T>, ...xs: T[]) => {
 
 export const count = <T>(coll: Reducible<T>) => coll.reduce((r) => r + 1, 0)
 
-export const createUid = () => Math.random().toString(16).substr(2)
+export const createUid = () => Math.random().toString(16).slice(2)
 
 /**
  * Disjoin. Returns a new collection with the xs 'removed'.

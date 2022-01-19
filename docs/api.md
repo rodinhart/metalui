@@ -1,5 +1,23 @@
 # API
 
+[**AsyncComponent**](#asynccomponent)
+
+[**errorBoundary**](#errorboundary)
+
+[**Fragment**](#fragment)
+
+[**lenses**](#lenses)
+
+[**Observable**](#observable)
+
+[**race**](#race)
+
+[**render**](#render)
+
+[**Scroller**](#scroller)
+
+[**SyncComponent**](#synccomponent)
+
 ## AsyncComponent<T>
 
 The type for an asynchronous component. There is an implied prop `children` representing the children.
@@ -59,7 +77,7 @@ const data = {
 
 const lens = compose(
   lenses.prop("friends"),
-  lenses.prop(1),
+  lenses.index(1),
   lenses.prop("name")
 )
 
@@ -156,7 +174,7 @@ for await (const [shape, color] of race(shapeOb, colorOb)) {
 
 This will log `red rectangle`, `green rectangle` and `green circle`.
 
-## renderǃ
+## render!
 
 Takes markup and context and returns an array of DOM nodes.
 
