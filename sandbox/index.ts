@@ -11,15 +11,17 @@ import {
 } from "../dist/index"
 
 const main = async () => {
-  const App: AsyncComponent<{ prefixOb: Observable<number> }> =
-    async function* ({ prefixOb, children }) {
-      for await (const prefix of prefixOb) {
-        yield ["div", {}, ["h3", {}, prefix.toFixed(2)], ...children]
-      }
-    }
+  const WithErrorBoundary = ({ children }) => [
+    "div",
+    { $errorBoundary: "OOPS" },
+    ...children,
+  ]
+  const Broken = () => {
+    throw new Error("BOOM")
+  }
 
   document.body.replaceChildren(
-    ...(await renderǃ([App, { prefixOb: new Observable(42) }, "Hello"]))
+    ...(await renderǃ([WithErrorBoundary, {}, "Hello World", [Broken, {}]]))
   )
 }
 

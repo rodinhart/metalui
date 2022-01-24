@@ -15,6 +15,7 @@ class Const {
         return new Const(this.x);
     }
 }
+export const index = (ix) => (f) => (obj) => f(obj && obj[ix]).map((val) => (obj || []).map((x, i) => (i !== ix ? x : val)));
 export const grind = (...keys) => 
 // @ts-ignore
 compose(...keys.map(prop));

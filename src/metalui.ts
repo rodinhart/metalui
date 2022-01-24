@@ -66,9 +66,9 @@ export const renderǃ = async <T>(
       }
     } catch (e) {
       // @ts-ignore
-      if (props.errorBoundary) {
+      if (newContext.$errorBoundary) {
         // @ts-ignore
-        return [document.createTextNode(String(props.errorBoundary))]
+        return [document.createTextNode(String(newContext.$errorBoundary))]
       }
 
       throw e

@@ -33,12 +33,12 @@ const Prefixed: AsyncComponent<{ prefixOb: Observable<number> }> =
 
 ## errorBoundary
 
-If any of the children throw an error when rendering, the container will display the string specified by `errorBoundary` instead of throwing the error.
+If any of the children throw an error when rendering, the container will display the string specified by `$errorBoundary` instead of throwing the error.
 
 ```js
 const WithErrorBoundary = ({ children }) => [
   "div",
-  { errorBoundary: "OOPS" },
+  { $errorBoundary: "OOPS" },
   ...children,
 ]
 ```

@@ -23,7 +23,7 @@ export const conj = (coll, ...xs) => {
     return new Set([...coll, ...xs]);
 };
 export const count = (coll) => coll.reduce((r) => r + 1, 0);
-export const createUid = () => Math.random().toString(16).substr(2);
+export const createUid = () => Math.random().toString(16).slice(2);
 /**
  * Disjoin. Returns a new collection with the xs 'removed'.
  */

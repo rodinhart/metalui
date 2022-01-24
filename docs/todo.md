@@ -1,5 +1,3 @@
-- example/docs error boundary
-  - make error boundary part of context ? $errorBoundary
 - scrolling while editing
   - virtual scrolling, when scrolling or even scrolling offscreen will edit "state" be remembered?
 - previous state management, like anchor
