@@ -47,7 +47,11 @@ export const renderǃ = async (markup, context = {}) => {
                 node.addEventListener(key.substr(2), value);
             }
             else if (!key.startsWith("$")) {
-                node.setAttribute(key, String(value)); // what about non-string values?
+                node.setAttribute(key, key === "style" && typeof value !== "string"
+                    ? Object.entries(value)
+                        .map(([key, value]) => `${key}: ${value};`)
+                        .join(" ")
+                    : String(value)); // what about non-string values?
             }
         }
         for (const child of mapped) {

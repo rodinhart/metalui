@@ -84,7 +84,14 @@ export const renderǃ = async <T>(
       if (key.startsWith("on")) {
         node.addEventListener(key.substr(2), value as any)
       } else if (!key.startsWith("$")) {
-        node.setAttribute(key, String(value)) // what about non-string values?
+        node.setAttribute(
+          key,
+          key === "style" && typeof value !== "string"
+            ? Object.entries(value)
+                .map(([key, value]) => `${key}: ${value};`)
+                .join(" ")
+            : String(value)
+        ) // what about non-string values?
       }
     }
 
