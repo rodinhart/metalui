@@ -1,38 +1,33 @@
-import { Markup, render, toxml } from "../dist/index"
+import { AsyncComponent, Markup, renderǃ } from "../dist/index"
 
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 
-export const ReactWrapper = <T extends any[]>(
-  component: (...args: T) => AsyncGenerator<JSX.Element, void, void>
-): ((...args: T) => AsyncGenerator<Markup, void, HTMLElement>) => {
-  return async function* (...args: T) {
-    const container = yield ["div", {}] as Markup // TODO remove this extra div
+export const react2metalui = <T>(
+  Component: (props: T) => JSX.Element
+): AsyncComponent<T> =>
+  async function* (props: T) {
+    const container = yield ["div", {}] // TODO remove this extra div
 
-    for await (const element of component(...args)) {
-      ReactDOM.render(element, container)
-    }
+    // use React.createElement
+    ReactDOM.render(React.createElement(Component, props), container)
   }
-}
 
-export const MetaluiWrapper = <T extends any[]>(
-  component: (...args: T) => AsyncGenerator<Markup, void, HTMLElement>
-): ((...args: T) => JSX.Element) => {
-  return (...args: T) => {
+export const metalui2react =
+  <T>(Component: AsyncComponent<T>) =>
+  (props: T) => {
     const dom = React.useRef<HTMLElement>(null)
 
     React.useEffect(() => {
       ;(async () => {
-        const iterator = component(...args)
+        const iterator = Component(props)
 
         const _ = async () => {
           const next = await iterator.next(dom.current!)
           if (dom.current && !next.done) {
             const element = next.value
-            dom.current!.innerHTML = toxml(
-              await render(element),
-              dom.current!.id
-            )
+            dom.current!.replaceChildren(...(await renderǃ(element)))
+
             _()
           } else {
             iterator.return()
@@ -41,12 +36,12 @@ export const MetaluiWrapper = <T extends any[]>(
 
         _()
 
-        // for await (const element of component(...args)) {
+        // for await (const element of Component(props)) {
         //   if (!dom.current) {
         //     break
         //   }
 
-        //   dom.current!.innerHTML = toxml(await render(element), dom.current!.id)
+        //   dom.current!.replaceChildren(...(await renderǃ(element)))
         // }
       })()
     })
@@ -57,4 +52,3 @@ export const MetaluiWrapper = <T extends any[]>(
       ref: dom,
     })
   }
-}
