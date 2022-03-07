@@ -1,4 +1,4 @@
-export * from "./lang"
-export * as lenses from "./lenses"
-export * from "./metalui"
-export * from "./Observable"
+export * from "./lang.js"
+export * as lenses from "./lenses.js"
+export * from "./metalui.js"
+export * from "./Observable.js"

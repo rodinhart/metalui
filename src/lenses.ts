@@ -1,4 +1,4 @@
-import { compose } from "./lang"
+import { compose } from "./lang.js"
 
 interface Functor<T> {
   map: <R>(f: (x: T) => R) => Functor<R>

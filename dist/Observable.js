@@ -1,4 +1,4 @@
-import { view } from "./lenses";
+import { view } from "./lenses.js";
 export class Observable {
     constructor(init) {
         this.value = init;

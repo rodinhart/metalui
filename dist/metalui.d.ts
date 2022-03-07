@@ -1,4 +1,4 @@
-import { Thunk } from "./lang";
+import { Thunk } from "./lang.js";
 export declare type Props = Record<string, any>;
 declare type ChildrenProp = {
     children: Markup<any>[];

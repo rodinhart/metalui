@@ -1,4 +1,4 @@
-import { compose } from "./lang";
+import { compose } from "./lang.js";
 class Identity {
     constructor(x) {
         this.x = x;

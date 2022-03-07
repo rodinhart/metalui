@@ -1,4 +1,4 @@
-import { Lens, view } from "./lenses"
+import { Lens, view } from "./lenses.js"
 
 export class Observable<T /* extends Extract<(val: T) => T, any> */> {
   value: T

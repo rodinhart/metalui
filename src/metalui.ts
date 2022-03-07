@@ -1,5 +1,5 @@
-import { sleep, Thunk } from "./lang"
-import { Observable } from "./Observable"
+import { sleep, Thunk } from "./lang.js"
+import { Observable } from "./Observable.js"
 
 export type Props = Record<string, any>
 type ChildrenProp = { children: Markup<any>[] }

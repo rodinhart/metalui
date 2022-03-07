@@ -1,5 +1,5 @@
-import { sleep } from "./lang";
-import { Observable } from "./Observable";
+import { sleep } from "./lang.js";
+import { Observable } from "./Observable.js";
 export const Fragment = ({ children }) => [
     "Fragment",
     {},

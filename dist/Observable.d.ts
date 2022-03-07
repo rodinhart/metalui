@@ -1,4 +1,4 @@
-import { Lens } from "./lenses";
+import { Lens } from "./lenses.js";
 export declare class Observable<T> {
     value: T;
     private ref;
