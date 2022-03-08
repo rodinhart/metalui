@@ -1,3 +1,4 @@
+- update docs + examples!
 - scrolling while editing
   - virtual scrolling, when scrolling or even scrolling offscreen will edit "state" be remembered?
 - previous state management, like anchor

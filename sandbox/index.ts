@@ -14,33 +14,36 @@ import { metalui2react, react2metalui } from "./react-bridge"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 
-import Hello from "./ReactComponent"
-
 const main = async () => {
-  // const App: SyncComponent<{}> = () => [
-  //   "div",
-  //   {},
-  //   ["div", { style: { color: "red" } }, "Urgent Message"],
-  //   [react2metalui(Hello), { name: "Pete" }],
-  // ]
-  // document.body.replaceChildren(...(await renderǃ([App, {}])))
+  const Tabs: AsyncComponent<{}> = async function* () {
+    const tabOb = new Observable(0)
 
-  const Greet: AsyncComponent<{}> = async function* () {
-    const dateOb = new Observable(new Date())
-
-    setInterval(() => {
-      dateOb.notify(new Date())
-    }, 1000)
-
-    for await (const date of dateOb) {
-      yield ["div", { style: { color: "green" } }, date.toUTCString()]
+    for await (const tab of tabOb) {
+      yield [
+        "div",
+        {},
+        ["div", { onclick: () => tabOb.notify(0) }, "First"],
+        ["div", { onclick: () => tabOb.notify(1) }, "Second"],
+        ["h1", {}, tab === 0 ? "First" : "Second"],
+      ]
     }
   }
 
-  ReactDOM.render(
-    React.createElement(metalui2react(Greet), null),
-    document.body
-  )
+  const App: AsyncComponent<{}> = async function* () {
+    const toggleOb = new Observable(false)
+
+    for await (const toggle of toggleOb) {
+      if (!toggle) {
+        yield ["div", { onclick: () => toggleOb.notify(true) }, "START"]
+      } else {
+        // break
+        yield [Tabs, {}]
+        // yield ["div", { onclick: () => toggleOb.notify(false) }, "Started"]
+      }
+    }
+  }
+
+  document.body.replaceChildren(...(await renderǃ(["div", {}, [App, {}]])))
 }
 
 main()

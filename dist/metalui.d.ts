@@ -9,6 +9,6 @@ export declare type Component<T extends Props> = SyncComponent<T> | AsyncCompone
 export declare type Markup<T> = null | boolean | number | string | [string, Props, ...Markup<any>[]] | [Component<T>, T, ...Markup<any>[]];
 export declare const Fragment: SyncComponent<{}>;
 export declare const lazyLoad: <T>(thunk: Thunk<Component<T>>) => Component<T>;
-export declare const renderǃ: <T>(markup: Markup<T>, context?: Record<string, any>) => Promise<Node[]>;
+export declare const renderǃ: <T>(markup: Markup<T>, context?: Record<string, any>) => Promise<Array<Node | AsyncGenerator<Node[], void, void>>>;
 export declare const Scroller: Component<any>;
 export {};

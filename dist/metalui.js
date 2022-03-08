@@ -1,4 +1,3 @@
-import { sleep } from "./lang.js";
 import { Observable } from "./Observable.js";
 export const Fragment = ({ children }) => [
     "Fragment",
@@ -55,7 +54,29 @@ export const renderǃ = async (markup, context = {}) => {
             }
         }
         for (const child of mapped) {
-            node.appendChild(child);
+            if (child instanceof Node) {
+                node.appendChild(child);
+            }
+            else {
+                const nodes = (await child.next()).value;
+                node.append(...nodes);
+                const _ = (nodes) => {
+                    child.next().then((n) => {
+                        if (n.done) {
+                            return;
+                        }
+                        const newNodes = n.value;
+                        for (const nn of newNodes) {
+                            node.insertBefore(nn, nodes[0]); // what if nodes === []
+                        }
+                        for (const n of nodes) {
+                            node.removeChild(n);
+                        }
+                        _(newNodes);
+                    });
+                };
+                _(nodes);
+            }
         }
         return [node];
     }
@@ -67,46 +88,55 @@ export const renderǃ = async (markup, context = {}) => {
         return await renderǃ(iterator, newContext);
     }
     // [async function*(), {}, ...]
-    const rerender = async (atom, loop) => {
-        do {
-            await sleep(0);
-        } while (loop && !atom.isConnected);
-        if (!atom.isConnected) {
-            await iterator.return();
-            return;
-        }
-        const next = await iterator.next(atom);
-        if (next.done) {
-            return;
-        }
-        const nodes = await renderǃ(next.value, newContext);
-        if (nodes.length !== 1) {
-            throw new Error(`Expect component to return single element, not ${nodes.length} elements`);
-        }
-        const node = nodes[0];
-        if (node.tagName !== atom.tagName) {
-            throw new Error(`Expect component to rerender with tag ${atom.tagName.toLowerCase()}, not tag ${node.tagName.toLocaleLowerCase()}`);
-        }
-        for (const name of node.getAttributeNames()) {
-            // event handlers ?!?
-            const value = node.getAttribute(name);
-            if (value !== null) {
-                atom.setAttribute(name, value);
-            }
-        }
-        atom.replaceChildren(...node.childNodes);
-        rerender(atom, false);
-    };
-    const next = await iterator.next();
-    if (next.done) {
-        return [];
-    }
-    const nodes = await renderǃ(next.value, newContext);
-    if (nodes.length !== 1) {
-        throw new Error(`Expect component to return single node, not ${nodes.length} nodes`);
-    }
-    rerender(nodes[0], true); // !!
-    return nodes;
+    const m = genMap((x) => renderǃ(x, newContext), iterator);
+    const n = genFlatten(m);
+    return [n];
+    // const rerender = async (atom: HTMLElement, loop: boolean) => {
+    //   do {
+    //     await sleep(0)
+    //   } while (loop && !atom.isConnected)
+    //   if (!atom.isConnected) {
+    //     await iterator.return()
+    //     return
+    //   }
+    //   const next = await iterator.next(atom)
+    //   if (next.done) {
+    //     return
+    //   }
+    //   const nodes = await renderǃ(next.value, newContext)
+    //   if (nodes.length !== 1) {
+    //     throw new Error(
+    //       `Expect component to return single element, not ${nodes.length} elements`
+    //     )
+    //   }
+    //   const node = nodes[0] as HTMLElement
+    //   if (node.tagName !== atom.tagName) {
+    //     throw new Error(
+    //       `Expect component to rerender with tag ${atom.tagName.toLowerCase()}, not tag ${node.tagName.toLocaleLowerCase()}`
+    //     )
+    //   }
+    //   for (const name of node.getAttributeNames()) {
+    //     // event handlers ?!?
+    //     const value = node.getAttribute(name)
+    //     if (value !== null) {
+    //       atom.setAttribute(name, value)
+    //     }
+    //   }
+    //   atom.replaceChildren(...node.childNodes)
+    //   rerender(atom, false)
+    // }
+    // const next = await iterator.next()
+    // if (next.done) {
+    //   return []
+    // }
+    // const nodes = await renderǃ(next.value, newContext)
+    // if (nodes.length !== 1) {
+    //   throw new Error(
+    //     `Expect component to return single node, not ${nodes.length} nodes`
+    //   )
+    // }
+    // rerender(nodes[0] as HTMLElement, true) // !!
+    // return nodes
 };
 export const Scroller = async function* ({ Body, totalHeight, }) {
     const scrollOb = new Observable(0);
@@ -137,3 +167,45 @@ export const Scroller = async function* ({ Body, totalHeight, }) {
         ],
     ];
 };
+const isAsyncGenerator = (x) => typeof x.next === "function";
+const genMap = (f, coll) => (async function* () {
+    for await (const item of coll) {
+        yield await f(item);
+    }
+})();
+const genFlatten = (coll) => (async function* () {
+    const next = (g, i) => g.next().then((n) => [n, i]);
+    let items = (await coll.next()).value;
+    let gens = items.filter(isAsyncGenerator);
+    let values = await Promise.all(gens.map((gen) => gen.next().then((x) => x.value)));
+    const getYield = () => {
+        const r = [];
+        let i = 0;
+        for (const item of items) {
+            if (isAsyncGenerator(item)) {
+                r.push(...values[i]);
+                i++;
+            }
+            else {
+                r.push(item);
+            }
+        }
+        return r;
+    };
+    yield getYield();
+    while (true) {
+        const [n, i] = await Promise.race([coll, ...gens].map((g, i) => next(g, i)));
+        if (i === 0) {
+            if (n.done) {
+                break;
+            }
+            items = n.value;
+            gens = items.filter(isAsyncGenerator);
+            values = await Promise.all(gens.map((gen) => gen.next().then((x) => x.value)));
+        }
+        else {
+            values[i - 1] = n.done ? [] : n.value;
+        }
+        yield getYield();
+    }
+})();
