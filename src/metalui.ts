@@ -1,4 +1,4 @@
-import { sleep, Thunk } from "./lang.js"
+import { Thunk } from "./lang.js"
 import { Observable } from "./Observable.js"
 
 export type Props = Record<string, any>
@@ -65,9 +65,7 @@ export const renderǃ = async <T>(
         mapped.push(...(await renderǃ(child, newContext)))
       }
     } catch (e) {
-      // @ts-ignore
       if (newContext.$errorBoundary) {
-        // @ts-ignore
         return [document.createTextNode(String(newContext.$errorBoundary))]
       }
 
@@ -82,7 +80,7 @@ export const renderǃ = async <T>(
     const node = document.createElement(tag)
     for (const [key, value] of Object.entries(props)) {
       if (key.startsWith("on")) {
-        node.addEventListener(key.substr(2), value as any)
+        node.addEventListener(key.substring(2), value as any)
       } else if (!key.startsWith("$")) {
         node.setAttribute(
           key,
@@ -102,9 +100,14 @@ export const renderǃ = async <T>(
         const nodes = (await child.next()).value!
         node.append(...nodes)
 
-        const _ = (nodes: Node[]) => {
+        const monitor = (nodes: Node[]) => {
           child.next().then((n) => {
             if (n.done) {
+              return
+            }
+
+            if (!node.isConnected) {
+              child.return()
               return
             }
 
@@ -118,11 +121,11 @@ export const renderǃ = async <T>(
               node.removeChild(n)
             }
 
-            _(newNodes)
+            monitor(newNodes)
           })
         }
 
-        _(nodes)
+        monitor(nodes)
       }
     }
 
@@ -144,72 +147,13 @@ export const renderǃ = async <T>(
   // [async function*(), {}, ...]
   const m = genMap(
     (x) => renderǃ(x, newContext),
-    iterator as AsyncGenerator<Markup<any>, void, void>
+    iterator,
+    (r) => (r.length === 1 && r[0] instanceof Node ? r[0] : undefined),
+    undefined
   )
-
   const n = genFlatten(m)
 
   return [n]
-
-  // const rerender = async (atom: HTMLElement, loop: boolean) => {
-  //   do {
-  //     await sleep(0)
-  //   } while (loop && !atom.isConnected)
-
-  //   if (!atom.isConnected) {
-  //     await iterator.return()
-  //     return
-  //   }
-
-  //   const next = await iterator.next(atom)
-  //   if (next.done) {
-  //     return
-  //   }
-
-  //   const nodes = await renderǃ(next.value, newContext)
-
-  //   if (nodes.length !== 1) {
-  //     throw new Error(
-  //       `Expect component to return single element, not ${nodes.length} elements`
-  //     )
-  //   }
-
-  //   const node = nodes[0] as HTMLElement
-  //   if (node.tagName !== atom.tagName) {
-  //     throw new Error(
-  //       `Expect component to rerender with tag ${atom.tagName.toLowerCase()}, not tag ${node.tagName.toLocaleLowerCase()}`
-  //     )
-  //   }
-
-  //   for (const name of node.getAttributeNames()) {
-  //     // event handlers ?!?
-  //     const value = node.getAttribute(name)
-  //     if (value !== null) {
-  //       atom.setAttribute(name, value)
-  //     }
-  //   }
-
-  //   atom.replaceChildren(...node.childNodes)
-
-  //   rerender(atom, false)
-  // }
-
-  // const next = await iterator.next()
-  // if (next.done) {
-  //   return []
-  // }
-
-  // const nodes = await renderǃ(next.value, newContext)
-
-  // if (nodes.length !== 1) {
-  //   throw new Error(
-  //     `Expect component to return single node, not ${nodes.length} nodes`
-  //   )
-  // }
-
-  // rerender(nodes[0] as HTMLElement, true) // !!
-
-  // return nodes
 }
 
 export const Scroller: Component<any> = async function* ({
@@ -252,33 +196,83 @@ export const Scroller: Component<any> = async function* ({
   ] as Markup<any>
 }
 
-const isAsyncGenerator = <T>(x: any): x is AsyncGenerator<T[], void, void> =>
+const isAsyncGenerator = <T>(x: any): x is AsyncGenerator<T, void, void> =>
   typeof x.next === "function"
 
-const genMap = <T, R>(
-  f: (item: T) => Promise<R>,
-  coll: AsyncGenerator<T, void, void>
-): AsyncGenerator<R, void, void> =>
-  (async function* () {
-    for await (const item of coll) {
-      yield await f(item)
-    }
-  })()
+const genMap = <A, B, R>(
+  f: (item: A) => Promise<B>,
+  coll: AsyncGenerator<A, void, R>,
+  ret: (value: B) => R,
+  initial: R
+): AsyncGenerator<B, void, void> => {
+  let r: R = initial
+
+  return {
+    async next(): Promise<IteratorResult<B, void>> {
+      const n = await coll.next(r)
+      if (n.done) {
+        return n
+      }
+
+      const value = await f(n.value)
+      r = ret(value)
+
+      return {
+        done: n.done,
+        value,
+      }
+    },
+
+    async return(): Promise<IteratorResult<B, void>> {
+      const n = await coll.return()
+      if (n.done) {
+        return n
+      }
+
+      const value = await f(n.value)
+
+      return {
+        done: n.done,
+        value,
+      }
+    },
+
+    async throw(e: any): Promise<IteratorResult<B, void>> {
+      const n = await coll.throw(e)
+      if (n.done) {
+        return n
+      }
+
+      const value = await f(n.value)
+
+      return {
+        done: n.done,
+        value,
+      }
+    },
+
+    [Symbol.asyncIterator]() {
+      return null as any
+    },
+  }
+}
 
 const genFlatten = <T>(
   coll: AsyncGenerator<Array<T | AsyncGenerator<T[], void, void>>, void, void>
 ): AsyncGenerator<T[]> =>
   (async function* () {
-    const next = <T>(g: AsyncGenerator<T, void, void>, i: number) =>
-      g.next().then((n) => [n, i] as [IteratorResult<T, void>, number])
-
-    let items: any[] = (await coll.next()).value!
-    let gens = items.filter(isAsyncGenerator) as AsyncGenerator<T, void, void>[]
-    let values: any[] = await Promise.all(
+    let items: Array<T | AsyncGenerator<T[], void, void>> = (await coll.next())
+      .value!
+    let gens = items.filter((x: any) => isAsyncGenerator(x)) as AsyncGenerator<
+      T[],
+      void,
+      void
+    >[]
+    let values = await Promise.all(
       gens.map((gen) => gen.next().then((x) => x.value!))
     )
     const getYield = () => {
-      const r = []
+      const r: T[] = []
       let i = 0
       for (const item of items) {
         if (isAsyncGenerator(item)) {
@@ -296,20 +290,26 @@ const genFlatten = <T>(
 
     while (true) {
       const [n, i] = await Promise.race(
-        [coll, ...gens].map((g, i) => next(g as any, i))
+        [coll, ...gens].map((g, i) =>
+          g.next().then((n) => [n, i] as [typeof n, number])
+        )
       )
       if (i === 0) {
         if (n.done) {
           break
         }
 
-        items = n.value! as any[]
-        gens = items.filter(isAsyncGenerator) as AsyncGenerator<T, void, void>[]
+        items = n.value!
+        gens = items.filter(isAsyncGenerator) as AsyncGenerator<
+          T[],
+          void,
+          void
+        >[]
         values = await Promise.all(
           gens.map((gen) => gen.next().then((x) => x.value!))
         )
       } else {
-        values[i - 1] = n.done ? [] : n.value!
+        values[i - 1] = n.done ? [] : (n.value! as T[])
       }
 
       yield getYield()

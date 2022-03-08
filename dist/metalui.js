@@ -29,9 +29,7 @@ export const renderǃ = async (markup, context = {}) => {
             }
         }
         catch (e) {
-            // @ts-ignore
             if (newContext.$errorBoundary) {
-                // @ts-ignore
                 return [document.createTextNode(String(newContext.$errorBoundary))];
             }
             throw e;
@@ -43,7 +41,7 @@ export const renderǃ = async (markup, context = {}) => {
         const node = document.createElement(tag);
         for (const [key, value] of Object.entries(props)) {
             if (key.startsWith("on")) {
-                node.addEventListener(key.substr(2), value);
+                node.addEventListener(key.substring(2), value);
             }
             else if (!key.startsWith("$")) {
                 node.setAttribute(key, key === "style" && typeof value !== "string"
@@ -60,9 +58,13 @@ export const renderǃ = async (markup, context = {}) => {
             else {
                 const nodes = (await child.next()).value;
                 node.append(...nodes);
-                const _ = (nodes) => {
+                const monitor = (nodes) => {
                     child.next().then((n) => {
                         if (n.done) {
+                            return;
+                        }
+                        if (!node.isConnected) {
+                            child.return();
                             return;
                         }
                         const newNodes = n.value;
@@ -72,10 +74,10 @@ export const renderǃ = async (markup, context = {}) => {
                         for (const n of nodes) {
                             node.removeChild(n);
                         }
-                        _(newNodes);
+                        monitor(newNodes);
                     });
                 };
-                _(nodes);
+                monitor(nodes);
             }
         }
         return [node];
@@ -88,55 +90,9 @@ export const renderǃ = async (markup, context = {}) => {
         return await renderǃ(iterator, newContext);
     }
     // [async function*(), {}, ...]
-    const m = genMap((x) => renderǃ(x, newContext), iterator);
+    const m = genMap((x) => renderǃ(x, newContext), iterator, (r) => (r.length === 1 && r[0] instanceof Node ? r[0] : undefined), undefined);
     const n = genFlatten(m);
     return [n];
-    // const rerender = async (atom: HTMLElement, loop: boolean) => {
-    //   do {
-    //     await sleep(0)
-    //   } while (loop && !atom.isConnected)
-    //   if (!atom.isConnected) {
-    //     await iterator.return()
-    //     return
-    //   }
-    //   const next = await iterator.next(atom)
-    //   if (next.done) {
-    //     return
-    //   }
-    //   const nodes = await renderǃ(next.value, newContext)
-    //   if (nodes.length !== 1) {
-    //     throw new Error(
-    //       `Expect component to return single element, not ${nodes.length} elements`
-    //     )
-    //   }
-    //   const node = nodes[0] as HTMLElement
-    //   if (node.tagName !== atom.tagName) {
-    //     throw new Error(
-    //       `Expect component to rerender with tag ${atom.tagName.toLowerCase()}, not tag ${node.tagName.toLocaleLowerCase()}`
-    //     )
-    //   }
-    //   for (const name of node.getAttributeNames()) {
-    //     // event handlers ?!?
-    //     const value = node.getAttribute(name)
-    //     if (value !== null) {
-    //       atom.setAttribute(name, value)
-    //     }
-    //   }
-    //   atom.replaceChildren(...node.childNodes)
-    //   rerender(atom, false)
-    // }
-    // const next = await iterator.next()
-    // if (next.done) {
-    //   return []
-    // }
-    // const nodes = await renderǃ(next.value, newContext)
-    // if (nodes.length !== 1) {
-    //   throw new Error(
-    //     `Expect component to return single node, not ${nodes.length} nodes`
-    //   )
-    // }
-    // rerender(nodes[0] as HTMLElement, true) // !!
-    // return nodes
 };
 export const Scroller = async function* ({ Body, totalHeight, }) {
     const scrollOb = new Observable(0);
@@ -168,15 +124,52 @@ export const Scroller = async function* ({ Body, totalHeight, }) {
     ];
 };
 const isAsyncGenerator = (x) => typeof x.next === "function";
-const genMap = (f, coll) => (async function* () {
-    for await (const item of coll) {
-        yield await f(item);
-    }
-})();
+const genMap = (f, coll, ret, initial) => {
+    let r = initial;
+    return {
+        async next() {
+            const n = await coll.next(r);
+            if (n.done) {
+                return n;
+            }
+            const value = await f(n.value);
+            r = ret(value);
+            return {
+                done: n.done,
+                value,
+            };
+        },
+        async return() {
+            const n = await coll.return();
+            if (n.done) {
+                return n;
+            }
+            const value = await f(n.value);
+            return {
+                done: n.done,
+                value,
+            };
+        },
+        async throw(e) {
+            const n = await coll.throw(e);
+            if (n.done) {
+                return n;
+            }
+            const value = await f(n.value);
+            return {
+                done: n.done,
+                value,
+            };
+        },
+        [Symbol.asyncIterator]() {
+            return null;
+        },
+    };
+};
 const genFlatten = (coll) => (async function* () {
-    const next = (g, i) => g.next().then((n) => [n, i]);
-    let items = (await coll.next()).value;
-    let gens = items.filter(isAsyncGenerator);
+    let items = (await coll.next())
+        .value;
+    let gens = items.filter((x) => isAsyncGenerator(x));
     let values = await Promise.all(gens.map((gen) => gen.next().then((x) => x.value)));
     const getYield = () => {
         const r = [];
@@ -194,7 +187,7 @@ const genFlatten = (coll) => (async function* () {
     };
     yield getYield();
     while (true) {
-        const [n, i] = await Promise.race([coll, ...gens].map((g, i) => next(g, i)));
+        const [n, i] = await Promise.race([coll, ...gens].map((g, i) => g.next().then((n) => [n, i])));
         if (i === 0) {
             if (n.done) {
                 break;

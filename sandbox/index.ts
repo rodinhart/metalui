@@ -1,18 +1,4 @@
-import {
-  AsyncComponent,
-  Fragment,
-  lenses,
-  Markup,
-  Observable,
-  Props,
-  race,
-  renderǃ,
-  SyncComponent,
-} from "../dist/index"
-
-import { metalui2react, react2metalui } from "./react-bridge"
-import * as React from "react"
-import * as ReactDOM from "react-dom"
+import { AsyncComponent, Observable, renderǃ } from "../dist/index"
 
 const main = async () => {
   const Tabs: AsyncComponent<{}> = async function* () {
@@ -34,10 +20,15 @@ const main = async () => {
 
     for await (const toggle of toggleOb) {
       if (!toggle) {
-        yield ["div", { onclick: () => toggleOb.notify(true) }, "START"]
+        const el = yield [
+          "div",
+          { onclick: () => toggleOb.notify(true) },
+          "START",
+        ]
+        el.setAttribute("style", "background: red;")
       } else {
         // break
-        yield [Tabs, {}]
+        yield ["div", {}, ["div", {}, String(new Date())], [Tabs, {}]]
         // yield ["div", { onclick: () => toggleOb.notify(false) }, "Started"]
       }
     }
