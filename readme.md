@@ -30,7 +30,7 @@
 
 [D. The initial rant](./docs/initial-rant.md)
 
-[Z. The long read](./docs/the-long-read.md)
+[Zzz. The long read](./docs/the-long-read.md)
 
 ## Stateless components
 
