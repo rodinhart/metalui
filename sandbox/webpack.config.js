@@ -1,14 +1,12 @@
 module.exports = {
   // devtool: "eval-source-map",
   entry: "./index.ts",
-  mode: "production",
+  mode: "development",
   module: {
     rules: [
       {
         test: /(\.tsx?|\.js)$/,
-        exclude: new RegExp(
-          `node_modules`
-        ),
+        exclude: new RegExp(`node_modules`),
         use: {
           loader: require.resolve("babel-loader"),
 

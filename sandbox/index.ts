@@ -1,36 +1,63 @@
-import { AsyncComponent, Observable, renderǃ } from "../dist/index"
+import {
+  AsyncComponent,
+  Fragment,
+  Observable,
+  race,
+  renderǃ,
+} from "../dist/index"
 
 const main = async () => {
-  const Tabs: AsyncComponent<{}> = async function* () {
+  const Counter = async function* () {
+    const countOb = new Observable(0)
+
+    for await (const count of countOb) {
+      yield [
+        "button",
+        { onclick: () => countOb.notify((x) => x + 1) },
+        `Count: ${count}`,
+      ]
+    }
+  }
+
+  const Preview = async function* ({ pageOb }) {
+    for await (const page of pageOb) {
+      yield [Tabs, { page: `Page ${page + 1}` }]
+    }
+  }
+
+  const Selector = async function* ({ stateOb }) {
+    const pageOb = new Observable(0)
+
+    for await (const state of stateOb) {
+      yield [
+        "div",
+        {},
+        ["div", { onclick: () => pageOb.notify(0) }, "Page 1"],
+        ["div", { onclick: () => pageOb.notify(1) }, "Page 2"],
+        [Preview, { pageOb }],
+      ]
+    }
+  }
+
+  const Tabs = async function* ({ page }) {
     const tabOb = new Observable(0)
 
     for await (const tab of tabOb) {
       yield [
         "div",
         {},
-        ["div", { onclick: () => tabOb.notify(0) }, "First"],
-        ["div", { onclick: () => tabOb.notify(1) }, "Second"],
-        ["h1", {}, tab === 0 ? "First" : "Second"],
+        ["div", { onclick: () => tabOb.notify(0) }, `${page} Tab A`],
+        ["div", { onclick: () => tabOb.notify(1) }, `${page} Tab B`],
+        tab === 0 ? ["div", {}, "AA"] : [Counter, {}],
       ]
     }
   }
 
-  const App: AsyncComponent<{}> = async function* () {
-    const toggleOb = new Observable(false)
+  const App = async function* () {
+    const stateOb = new Observable({})
 
-    for await (const toggle of toggleOb) {
-      if (!toggle) {
-        const el = yield [
-          "div",
-          { onclick: () => toggleOb.notify(true) },
-          "START",
-        ]
-        el.setAttribute("style", "background: red;")
-      } else {
-        // break
-        yield ["div", {}, ["div", {}, String(new Date())], [Tabs, {}]]
-        // yield ["div", { onclick: () => toggleOb.notify(false) }, "Started"]
-      }
+    for await (const state of stateOb) {
+      yield ["div", {}, [Selector, { stateOb }]]
     }
   }
 
