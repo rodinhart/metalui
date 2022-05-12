@@ -12,7 +12,7 @@ export const lazyLoad = (thunk) => async function* (props) {
 export const renderǃ = async (markup, context = {}) => {
     // "Hello World"
     if (!Array.isArray(markup)) {
-        return markup === null ? null : document.createTextNode(String(markup));
+        return markup === null ? [] : [document.createTextNode(String(markup))];
     }
     const [tag, props, ...children] = markup;
     const newContext = Object.entries(props).reduce((r, [key, val]) => {
@@ -35,14 +35,16 @@ export const renderǃ = async (markup, context = {}) => {
         }
         catch (e) {
             if (newContext.$errorBoundary) {
-                return document.createTextNode(String(newContext.$errorBoundary));
+                return [document.createTextNode(String(newContext.$errorBoundary))];
             }
             throw e;
         }
         // ["Fragment", {}, ...]
         if (tag === "Fragment") {
-            // @ts-ignore
-            return mapped;
+            if (mapped.every((x) => Array.isArray(x))) {
+                return mapped.flat();
+            }
+            return []; // !!!
         }
         const node = document.createElement(tag);
         for (const [key, value] of Object.entries(props)) {
@@ -57,33 +59,38 @@ export const renderǃ = async (markup, context = {}) => {
                     : String(value)); // what about non-string values?
             }
         }
+        if (mapped.every((x) => Array.isArray(x))) {
+            node.replaceChildren(...mapped.flat());
+            return [node];
+        }
         // get initial values
-        const values = await Promise.all(mapped.map((child) => child instanceof Node
+        const values = await Promise.all(mapped.map((child) => Array.isArray(child)
             ? Promise.resolve(child)
-            : child.next().then((n) => (n.done ? null : n.value))));
-        node.replaceChildren(...values.filter(notNull));
+            : child.next().then((n) => (n.done ? [] : n.value))));
+        node.replaceChildren(...values.flat());
         const _ = async () => {
-            const nexts = mapped.map((child, i) => child instanceof Node
+            const nexts = mapped.map((child, i) => Array.isArray(child)
                 ? null
                 : child.next().then((n) => [n, i]));
             do {
                 const [next, i] = await Promise.race(nexts.filter(notNull));
-                values[i] = next.done ? null : next.value;
-                node.replaceChildren(...values.filter(notNull));
+                values[i] = next.done ? [] : next.value;
+                node.replaceChildren(...values.flat());
                 nexts[i] = next.done
                     ? null
                     : mapped[i].next().then((n) => [n, i]);
             } while (true);
         };
         _();
-        return node;
+        return [node];
     }
     // catch error here
     const iterator = tag({ ...newContext, ...props, children });
     // [function(), {}, ...]
     if (iterator === null ||
         typeof iterator !== "object" ||
-        Array.isArray(iterator)) {
+        Array.isArray(iterator) // ??
+    ) {
         return await renderǃ(iterator, newContext);
     }
     const getNext = () => iterator
@@ -108,7 +115,7 @@ export const renderǃ = async (markup, context = {}) => {
                 }
                 else {
                     const value = next.value;
-                    if (value instanceof Node || value === null) {
+                    if (Array.isArray(value)) {
                         yield value;
                     }
                     else {

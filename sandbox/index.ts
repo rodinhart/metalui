@@ -63,12 +63,12 @@ const main = async () => {
   }
 
   document.body.replaceChildren(
-    (await renderǃ([
+    ...((await renderǃ([
       "div",
       {},
       ["span", {}, "Span "],
       [App, {}],
-    ] as Markup<any>)) as Node
+    ] as Markup<any>)) as Node[])
   )
 }
 
