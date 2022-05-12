@@ -1,7 +1,7 @@
 import { Observable } from "./Observable.js";
 const notNull = (value) => value !== null;
 export const Fragment = ({ children }) => [
-    "Fragment",
+    "div",
     {},
     ...children,
 ];
@@ -95,16 +95,13 @@ export const renderǃ = async (markup, context = {}) => {
         let main = getNext();
         let sub = null;
         do {
-            const [next, type] = await Promise.race([
-                main,
-                ...(sub
-                    ? [
-                        sub
-                            .next()
-                            .then((n) => [n, "sub"]),
-                    ]
-                    : []),
-            ]);
+            const promises = [main];
+            if (sub) {
+                promises.push(sub
+                    .next()
+                    .then((n) => [n, "sub"]));
+            }
+            const [next, type] = await Promise.race(promises);
             if (type === "main") {
                 if (next.done) {
                     break;

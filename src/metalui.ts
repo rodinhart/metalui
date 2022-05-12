@@ -27,7 +27,7 @@ type Indexed = [IteratorResult<Node | null, void>, number]
 const notNull = <T>(value: T | null): value is T => value !== null
 
 export const Fragment: SyncComponent<{}> = ({ children }: ChildrenProp) => [
-  "Fragment",
+  "div", // "Fragment",
   {},
   ...children,
 ]
@@ -165,26 +165,26 @@ export const renderǃ = async <T>(
             )
       )
 
-  const _ = async function* () {
+  const _ = async function* (): DynamicNode {
     let main = getNext()
     let sub: null | DynamicNode = null
     do {
-      const [next, type] = await Promise.race([
-        main,
-        ...(sub
-          ? [
-              sub
-                .next()
-                .then(
-                  (n) =>
-                    [n, "sub"] as [
-                      IteratorResult<Node | null, void>,
-                      "main" | "sub"
-                    ]
-                ),
-            ]
-          : []),
-      ])
+      const promises = [main]
+      if (sub) {
+        promises.push(
+          sub
+            .next()
+            .then(
+              (n) =>
+                [n, "sub"] as [
+                  IteratorResult<Node | null, void>,
+                  "main" | "sub"
+                ]
+            )
+        )
+      }
+
+      const [next, type] = await Promise.race(promises)
 
       if (type === "main") {
         if (next.done) {
@@ -203,7 +203,7 @@ export const renderǃ = async <T>(
         if (next.done) {
           sub = null
         } else {
-          yield next.value
+          yield next.value as Node | null
         }
       }
     } while (true)
