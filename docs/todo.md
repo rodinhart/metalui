@@ -1,3 +1,4 @@
+- `[Container, {}, ..children]` when children change?
 - update docs + examples!
 - scrolling while editing
   - virtual scrolling, when scrolling or even scrolling offscreen will edit "state" be remembered?

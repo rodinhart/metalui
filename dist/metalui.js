@@ -1,4 +1,5 @@
 import { Observable } from "./Observable.js";
+const notNull = (value) => value !== null;
 export const Fragment = ({ children }) => [
     "Fragment",
     {},
@@ -11,7 +12,7 @@ export const lazyLoad = (thunk) => async function* (props) {
 export const renderǃ = async (markup, context = {}) => {
     // "Hello World"
     if (!Array.isArray(markup)) {
-        return markup === null ? [] : [document.createTextNode(String(markup))];
+        return markup === null ? null : document.createTextNode(String(markup));
     }
     const [tag, props, ...children] = markup;
     const newContext = Object.entries(props).reduce((r, [key, val]) => {
@@ -24,18 +25,23 @@ export const renderǃ = async (markup, context = {}) => {
     if (typeof tag === "string") {
         const mapped = [];
         try {
+            // move try-catch to function/component call
             for (const child of children) {
-                mapped.push(...(await renderǃ(child, newContext)));
+                const rendered = await renderǃ(child, newContext);
+                if (rendered !== null) {
+                    mapped.push(rendered);
+                }
             }
         }
         catch (e) {
             if (newContext.$errorBoundary) {
-                return [document.createTextNode(String(newContext.$errorBoundary))];
+                return document.createTextNode(String(newContext.$errorBoundary));
             }
             throw e;
         }
         // ["Fragment", {}, ...]
         if (tag === "Fragment") {
+            // @ts-ignore
             return mapped;
         }
         const node = document.createElement(tag);
@@ -51,37 +57,28 @@ export const renderǃ = async (markup, context = {}) => {
                     : String(value)); // what about non-string values?
             }
         }
-        for (const child of mapped) {
-            if (child instanceof Node) {
-                node.appendChild(child);
-            }
-            else {
-                const nodes = (await child.next()).value;
-                node.append(...nodes);
-                const monitor = (nodes) => {
-                    child.next().then((n) => {
-                        if (n.done) {
-                            return;
-                        }
-                        if (!node.isConnected) {
-                            child.return();
-                            return;
-                        }
-                        const newNodes = n.value;
-                        for (const nn of newNodes) {
-                            node.insertBefore(nn, nodes[0]); // what if nodes === []
-                        }
-                        for (const n of nodes) {
-                            node.removeChild(n);
-                        }
-                        monitor(newNodes);
-                    });
-                };
-                monitor(nodes);
-            }
-        }
-        return [node];
+        // get initial values
+        const values = await Promise.all(mapped.map((child) => child instanceof Node
+            ? Promise.resolve(child)
+            : child.next().then((n) => (n.done ? null : n.value))));
+        node.replaceChildren(...values.filter(notNull));
+        const _ = async () => {
+            const nexts = mapped.map((child, i) => child instanceof Node
+                ? null
+                : child.next().then((n) => [n, i]));
+            do {
+                const [next, i] = await Promise.race(nexts.filter(notNull));
+                values[i] = next.done ? null : next.value;
+                node.replaceChildren(...values.filter(notNull));
+                nexts[i] = next.done
+                    ? null
+                    : mapped[i].next().then((n) => [n, i]);
+            } while (true);
+        };
+        _();
+        return node;
     }
+    // catch error here
     const iterator = tag({ ...newContext, ...props, children });
     // [function(), {}, ...]
     if (iterator === null ||
@@ -89,10 +86,51 @@ export const renderǃ = async (markup, context = {}) => {
         Array.isArray(iterator)) {
         return await renderǃ(iterator, newContext);
     }
-    // [async function*(), {}, ...]
-    const m = genMap((x) => renderǃ(x, newContext), iterator, (r) => (r.length === 1 && r[0] instanceof Node ? r[0] : undefined), undefined);
-    const n = genFlatten(m);
-    return [n];
+    const getNext = () => iterator
+        .next()
+        .then((n) => n.done
+        ? [n, "main"]
+        : renderǃ(n.value, newContext).then((value) => [{ value }, "main"]));
+    const _ = async function* () {
+        let main = getNext();
+        let sub = null;
+        do {
+            const [next, type] = await Promise.race([
+                main,
+                ...(sub
+                    ? [
+                        sub
+                            .next()
+                            .then((n) => [n, "sub"]),
+                    ]
+                    : []),
+            ]);
+            if (type === "main") {
+                if (next.done) {
+                    break;
+                }
+                else {
+                    const value = next.value;
+                    if (value instanceof Node || value === null) {
+                        yield value;
+                    }
+                    else {
+                        sub = value;
+                    }
+                    main = getNext();
+                }
+            }
+            else {
+                if (next.done) {
+                    sub = null;
+                }
+                else {
+                    yield next.value;
+                }
+            }
+        } while (true);
+    };
+    return _();
 };
 export const Scroller = async function* ({ Body, totalHeight, }) {
     const scrollOb = new Observable(0);

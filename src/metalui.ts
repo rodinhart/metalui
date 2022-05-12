@@ -22,6 +22,10 @@ export type Markup<T> =
   | [string, Props, ...Markup<any>[]]
   | [Component<T>, T, ...Markup<any>[]]
 
+type DynamicNode = AsyncGenerator<Node | null, void, void>
+type Indexed = [IteratorResult<Node | null, void>, number]
+const notNull = <T>(value: T | null): value is T => value !== null
+
 export const Fragment: SyncComponent<{}> = ({ children }: ChildrenProp) => [
   "Fragment",
   {},
@@ -38,10 +42,10 @@ export const lazyLoad = <T>(thunk: Thunk<Component<T>>): Component<T> =>
 export const renderǃ = async <T>(
   markup: Markup<T>,
   context: Record<string, any> = {}
-): Promise<Array<Node | AsyncGenerator<Node[], void, void>>> => {
+): Promise<Node | null | DynamicNode> => {
   // "Hello World"
   if (!Array.isArray(markup)) {
-    return markup === null ? [] : [document.createTextNode(String(markup))]
+    return markup === null ? null : document.createTextNode(String(markup))
   }
 
   const [tag, props, ...children] = markup
@@ -59,14 +63,18 @@ export const renderǃ = async <T>(
 
   // ["tag", {}, ...]
   if (typeof tag === "string") {
-    const mapped: Array<Node | AsyncGenerator<Node[], void, void>> = []
+    const mapped: Array<Node | DynamicNode> = []
     try {
+      // move try-catch to function/component call
       for (const child of children) {
-        mapped.push(...(await renderǃ(child, newContext)))
+        const rendered = await renderǃ(child, newContext)
+        if (rendered !== null) {
+          mapped.push(rendered)
+        }
       }
     } catch (e) {
       if (newContext.$errorBoundary) {
-        return [document.createTextNode(String(newContext.$errorBoundary))]
+        return document.createTextNode(String(newContext.$errorBoundary))
       }
 
       throw e
@@ -74,6 +82,7 @@ export const renderǃ = async <T>(
 
     // ["Fragment", {}, ...]
     if (tag === "Fragment") {
+      // @ts-ignore
       return mapped
     }
 
@@ -93,45 +102,39 @@ export const renderǃ = async <T>(
       }
     }
 
-    for (const child of mapped) {
-      if (child instanceof Node) {
-        node.appendChild(child)
-      } else {
-        const nodes = (await child.next()).value!
-        node.append(...nodes)
+    // get initial values
+    const values = await Promise.all(
+      mapped.map((child) =>
+        child instanceof Node
+          ? Promise.resolve(child)
+          : child.next().then((n) => (n.done ? null : n.value))
+      )
+    )
+    node.replaceChildren(...values.filter(notNull))
 
-        const monitor = (nodes: Node[]) => {
-          child.next().then((n) => {
-            if (n.done) {
-              return
-            }
+    const _ = async () => {
+      const nexts = mapped.map((child, i) =>
+        child instanceof Node
+          ? null
+          : child.next().then((n) => [n, i] as Indexed)
+      )
 
-            if (!node.isConnected) {
-              child.return()
-              return
-            }
-
-            const newNodes = n.value!
-
-            for (const nn of newNodes) {
-              node.insertBefore(nn, nodes[0]) // what if nodes === []
-            }
-
-            for (const n of nodes) {
-              node.removeChild(n)
-            }
-
-            monitor(newNodes)
-          })
-        }
-
-        monitor(nodes)
-      }
+      do {
+        const [next, i] = await Promise.race(nexts.filter(notNull))
+        values[i] = next.done ? null : next.value
+        node.replaceChildren(...values.filter(notNull))
+        nexts[i] = next.done
+          ? null
+          : (mapped[i] as DynamicNode).next().then((n) => [n, i])
+      } while (true)
     }
 
-    return [node]
+    _()
+
+    return node
   }
 
+  // catch error here
   const iterator = tag({ ...newContext, ...props, children } as T &
     ChildrenProp)
 
@@ -144,16 +147,69 @@ export const renderǃ = async <T>(
     return await renderǃ(iterator, newContext)
   }
 
-  // [async function*(), {}, ...]
-  const m = genMap(
-    (x) => renderǃ(x, newContext),
-    iterator,
-    (r) => (r.length === 1 && r[0] instanceof Node ? r[0] : undefined),
-    undefined
-  )
-  const n = genFlatten(m)
+  const getNext = () =>
+    iterator
+      .next()
+      .then((n) =>
+        n.done
+          ? ([n, "main"] as [
+              IteratorResult<Node | null | DynamicNode, void>,
+              "main" | "sub"
+            ])
+          : renderǃ(n.value, newContext).then(
+              (value) =>
+                [{ value }, "main"] as [
+                  IteratorResult<Node | null | DynamicNode, void>,
+                  "main" | "sub"
+                ]
+            )
+      )
 
-  return [n]
+  const _ = async function* () {
+    let main = getNext()
+    let sub: null | DynamicNode = null
+    do {
+      const [next, type] = await Promise.race([
+        main,
+        ...(sub
+          ? [
+              sub
+                .next()
+                .then(
+                  (n) =>
+                    [n, "sub"] as [
+                      IteratorResult<Node | null, void>,
+                      "main" | "sub"
+                    ]
+                ),
+            ]
+          : []),
+      ])
+
+      if (type === "main") {
+        if (next.done) {
+          break
+        } else {
+          const value: Node | null | DynamicNode = next.value
+          if (value instanceof Node || value === null) {
+            yield value
+          } else {
+            sub = value
+          }
+
+          main = getNext()
+        }
+      } else {
+        if (next.done) {
+          sub = null
+        } else {
+          yield next.value
+        }
+      }
+    } while (true)
+  }
+
+  return _()
 }
 
 export const Scroller: Component<any> = async function* ({

@@ -1,6 +1,7 @@
 import {
   AsyncComponent,
   Fragment,
+  Markup,
   Observable,
   race,
   renderǃ,
@@ -61,7 +62,14 @@ const main = async () => {
     }
   }
 
-  document.body.replaceChildren(...(await renderǃ(["div", {}, [App, {}]])))
+  document.body.replaceChildren(
+    (await renderǃ([
+      "div",
+      {},
+      ["span", {}, "Span "],
+      [App, {}],
+    ] as Markup<any>)) as Node
+  )
 }
 
 main()
