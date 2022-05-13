@@ -1,5 +1,6 @@
 import {
   AsyncComponent,
+  DynamicNodes,
   Fragment,
   Markup,
   Observable,
@@ -62,14 +63,15 @@ const main = async () => {
     }
   }
 
-  document.body.replaceChildren(
-    ...((await renderǃ([
-      "div",
-      {},
-      ["span", {}, "Span "],
-      [App, {}],
-    ] as Markup<any>)) as Node[])
-  )
+  const iterator = (await renderǃ([
+    Fragment,
+    {},
+    ["span", {}, "Span "],
+    [App, {}],
+  ] as Markup<any>)) as DynamicNodes
+  for await (const values of iterator) {
+    document.body.replaceChildren(...values)
+  }
 }
 
 main()

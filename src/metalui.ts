@@ -22,12 +22,12 @@ export type Markup<T> =
   | [string, Props, ...Markup<any>[]]
   | [Component<T>, T, ...Markup<any>[]]
 
-type DynamicNodes = AsyncGenerator<Node[], void, void>
+export type DynamicNodes = AsyncGenerator<Node[], void, void>
 type Indexed = [IteratorResult<Node[], void>, number]
 const notNull = <T>(value: T | null): value is T => value !== null
 
 export const Fragment: SyncComponent<{}> = ({ children }: ChildrenProp) => [
-  "div", // "Fragment",
+  "Fragment",
   {},
   ...children,
 ]
@@ -64,20 +64,11 @@ export const renderǃ = async <T>(
   // ["tag", {}, ...]
   if (typeof tag === "string") {
     const mapped: Array<Node[] | DynamicNodes> = []
-    try {
-      // move try-catch to function/component call
-      for (const child of children) {
-        const rendered = await renderǃ(child, newContext)
-        if (rendered !== null) {
-          mapped.push(rendered)
-        }
+    for (const child of children) {
+      const rendered = await renderǃ(child, newContext)
+      if (rendered !== null) {
+        mapped.push(rendered)
       }
-    } catch (e) {
-      if (newContext.$errorBoundary) {
-        return [document.createTextNode(String(newContext.$errorBoundary))]
-      }
-
-      throw e
     }
 
     // ["Fragment", {}, ...]
@@ -86,7 +77,7 @@ export const renderǃ = async <T>(
         return mapped.flat() as Node[]
       }
 
-      return [] // !!!
+      return flattenChildren(mapped)
     }
 
     const node = document.createElement(tag)
@@ -111,51 +102,37 @@ export const renderǃ = async <T>(
       return [node]
     }
 
-    // get initial values
-    const values = await Promise.all(
-      mapped.map((child) =>
-        Array.isArray(child)
-          ? Promise.resolve(child)
-          : child.next().then((n) => (n.done ? [] : n.value))
-      )
-    )
-    node.replaceChildren(...values.flat())
-
-    const _ = async () => {
-      const nexts = mapped.map((child, i) =>
-        Array.isArray(child)
-          ? null
-          : child.next().then((n) => [n, i] as Indexed)
-      )
-
-      do {
-        const [next, i] = await Promise.race(nexts.filter(notNull))
-        values[i] = next.done ? [] : next.value
-        node.replaceChildren(...values.flat())
-        nexts[i] = next.done
-          ? null
-          : (mapped[i] as DynamicNodes).next().then((n) => [n, i])
-      } while (true)
-    }
-
-    _()
+    ;(async () => {
+      for await (const values of flattenChildren(mapped)) {
+        node.replaceChildren(...values)
+      }
+    })()
 
     return [node]
   }
 
-  // catch error here
-  const iterator = tag({ ...newContext, ...props, children } as T &
-    ChildrenProp)
+  let result: ReturnType<typeof tag>
+  try {
+    result = tag({ ...newContext, ...props, children } as T & ChildrenProp)
+  } catch (e) {
+    console.log({ e, newContext })
+    if (newContext.$errorBoundary) {
+      return [document.createTextNode(String(newContext.$errorBoundary))]
+    }
+
+    throw e
+  }
 
   // [function(), {}, ...]
   if (
-    iterator === null ||
-    typeof iterator !== "object" ||
-    Array.isArray(iterator) // ??
+    result === null ||
+    typeof result !== "object" ||
+    Array.isArray(result) // ??
   ) {
-    return await renderǃ(iterator, newContext)
+    return await renderǃ(result, newContext)
   }
 
+  const iterator = result as AsyncGenerator<Markup<any>, void, HTMLElement>
   const getNext = () =>
     iterator
       .next()
@@ -258,122 +235,29 @@ export const Scroller: Component<any> = async function* ({
   ] as Markup<any>
 }
 
-const isAsyncGenerator = <T>(x: any): x is AsyncGenerator<T, void, void> =>
-  typeof x.next === "function"
-
-const genMap = <A, B, R>(
-  f: (item: A) => Promise<B>,
-  coll: AsyncGenerator<A, void, R>,
-  ret: (value: B) => R,
-  initial: R
-): AsyncGenerator<B, void, void> => {
-  let r: R = initial
-
-  return {
-    async next(): Promise<IteratorResult<B, void>> {
-      const n = await coll.next(r)
-      if (n.done) {
-        return n
-      }
-
-      const value = await f(n.value)
-      r = ret(value)
-
-      return {
-        done: n.done,
-        value,
-      }
-    },
-
-    async return(): Promise<IteratorResult<B, void>> {
-      const n = await coll.return()
-      if (n.done) {
-        return n
-      }
-
-      const value = await f(n.value)
-
-      return {
-        done: n.done,
-        value,
-      }
-    },
-
-    async throw(e: any): Promise<IteratorResult<B, void>> {
-      const n = await coll.throw(e)
-      if (n.done) {
-        return n
-      }
-
-      const value = await f(n.value)
-
-      return {
-        done: n.done,
-        value,
-      }
-    },
-
-    [Symbol.asyncIterator]() {
-      return null as any
-    },
-  }
-}
-
-const genFlatten = <T>(
-  coll: AsyncGenerator<Array<T | AsyncGenerator<T[], void, void>>, void, void>
-): AsyncGenerator<T[]> =>
-  (async function* () {
-    let items: Array<T | AsyncGenerator<T[], void, void>> = (await coll.next())
-      .value!
-    let gens = items.filter((x: any) => isAsyncGenerator(x)) as AsyncGenerator<
-      T[],
-      void,
-      void
-    >[]
-    let values = await Promise.all(
-      gens.map((gen) => gen.next().then((x) => x.value!))
+const flattenChildren = async function* (
+  mapped: (Node[] | DynamicNodes)[]
+): DynamicNodes {
+  // get initial values
+  const values = await Promise.all(
+    mapped.map((child) =>
+      Array.isArray(child)
+        ? Promise.resolve(child)
+        : child.next().then((n) => (n.done ? [] : n.value))
     )
-    const getYield = () => {
-      const r: T[] = []
-      let i = 0
-      for (const item of items) {
-        if (isAsyncGenerator(item)) {
-          r.push(...values[i])
-          i++
-        } else {
-          r.push(item)
-        }
-      }
+  )
+  yield values.flat()
 
-      return r
-    }
+  const nexts = mapped.map((child, i) =>
+    Array.isArray(child) ? null : child.next().then((n) => [n, i] as Indexed)
+  )
 
-    yield getYield()
-
-    while (true) {
-      const [n, i] = await Promise.race(
-        [coll, ...gens].map((g, i) =>
-          g.next().then((n) => [n, i] as [typeof n, number])
-        )
-      )
-      if (i === 0) {
-        if (n.done) {
-          break
-        }
-
-        items = n.value!
-        gens = items.filter(isAsyncGenerator) as AsyncGenerator<
-          T[],
-          void,
-          void
-        >[]
-        values = await Promise.all(
-          gens.map((gen) => gen.next().then((x) => x.value!))
-        )
-      } else {
-        values[i - 1] = n.done ? [] : (n.value! as T[])
-      }
-
-      yield getYield()
-    }
-  })()
+  do {
+    const [next, i] = await Promise.race(nexts.filter(notNull))
+    values[i] = next.done ? [] : next.value
+    yield values.flat()
+    nexts[i] = next.done
+      ? null
+      : (mapped[i] as DynamicNodes).next().then((n) => [n, i])
+  } while (true)
+}

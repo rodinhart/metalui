@@ -7,7 +7,7 @@ export declare type SyncComponent<T extends Props> = (props: T & ChildrenProp) =
 export declare type AsyncComponent<T extends Props> = (props: T & ChildrenProp) => AsyncGenerator<Markup<any>, void, HTMLElement>;
 export declare type Component<T extends Props> = SyncComponent<T> | AsyncComponent<T>;
 export declare type Markup<T> = null | boolean | number | string | [string, Props, ...Markup<any>[]] | [Component<T>, T, ...Markup<any>[]];
-declare type DynamicNodes = AsyncGenerator<Node[], void, void>;
+export declare type DynamicNodes = AsyncGenerator<Node[], void, void>;
 export declare const Fragment: SyncComponent<{}>;
 export declare const lazyLoad: <T>(thunk: Thunk<Component<T>>) => Component<T>;
 export declare const renderǃ: <T>(markup: Markup<T>, context?: Record<string, any>) => Promise<Node[] | DynamicNodes>;

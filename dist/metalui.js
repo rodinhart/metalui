@@ -1,7 +1,7 @@
 import { Observable } from "./Observable.js";
 const notNull = (value) => value !== null;
 export const Fragment = ({ children }) => [
-    "div",
+    "Fragment",
     {},
     ...children,
 ];
@@ -24,27 +24,18 @@ export const renderǃ = async (markup, context = {}) => {
     // ["tag", {}, ...]
     if (typeof tag === "string") {
         const mapped = [];
-        try {
-            // move try-catch to function/component call
-            for (const child of children) {
-                const rendered = await renderǃ(child, newContext);
-                if (rendered !== null) {
-                    mapped.push(rendered);
-                }
+        for (const child of children) {
+            const rendered = await renderǃ(child, newContext);
+            if (rendered !== null) {
+                mapped.push(rendered);
             }
-        }
-        catch (e) {
-            if (newContext.$errorBoundary) {
-                return [document.createTextNode(String(newContext.$errorBoundary))];
-            }
-            throw e;
         }
         // ["Fragment", {}, ...]
         if (tag === "Fragment") {
             if (mapped.every((x) => Array.isArray(x))) {
                 return mapped.flat();
             }
-            return []; // !!!
+            return flattenChildren(mapped);
         }
         const node = document.createElement(tag);
         for (const [key, value] of Object.entries(props)) {
@@ -63,36 +54,33 @@ export const renderǃ = async (markup, context = {}) => {
             node.replaceChildren(...mapped.flat());
             return [node];
         }
-        // get initial values
-        const values = await Promise.all(mapped.map((child) => Array.isArray(child)
-            ? Promise.resolve(child)
-            : child.next().then((n) => (n.done ? [] : n.value))));
-        node.replaceChildren(...values.flat());
-        const _ = async () => {
-            const nexts = mapped.map((child, i) => Array.isArray(child)
-                ? null
-                : child.next().then((n) => [n, i]));
-            do {
-                const [next, i] = await Promise.race(nexts.filter(notNull));
-                values[i] = next.done ? [] : next.value;
-                node.replaceChildren(...values.flat());
-                nexts[i] = next.done
-                    ? null
-                    : mapped[i].next().then((n) => [n, i]);
-            } while (true);
-        };
-        _();
+        ;
+        (async () => {
+            for await (const values of flattenChildren(mapped)) {
+                node.replaceChildren(...values);
+            }
+        })();
         return [node];
     }
-    // catch error here
-    const iterator = tag({ ...newContext, ...props, children });
-    // [function(), {}, ...]
-    if (iterator === null ||
-        typeof iterator !== "object" ||
-        Array.isArray(iterator) // ??
-    ) {
-        return await renderǃ(iterator, newContext);
+    let result;
+    try {
+        result = tag({ ...newContext, ...props, children });
     }
+    catch (e) {
+        console.log({ e, newContext });
+        if (newContext.$errorBoundary) {
+            return [document.createTextNode(String(newContext.$errorBoundary))];
+        }
+        throw e;
+    }
+    // [function(), {}, ...]
+    if (result === null ||
+        typeof result !== "object" ||
+        Array.isArray(result) // ??
+    ) {
+        return await renderǃ(result, newContext);
+    }
+    const iterator = result;
     const getNext = () => iterator
         .next()
         .then((n) => n.done
@@ -165,82 +153,19 @@ export const Scroller = async function* ({ Body, totalHeight, }) {
         ],
     ];
 };
-const isAsyncGenerator = (x) => typeof x.next === "function";
-const genMap = (f, coll, ret, initial) => {
-    let r = initial;
-    return {
-        async next() {
-            const n = await coll.next(r);
-            if (n.done) {
-                return n;
-            }
-            const value = await f(n.value);
-            r = ret(value);
-            return {
-                done: n.done,
-                value,
-            };
-        },
-        async return() {
-            const n = await coll.return();
-            if (n.done) {
-                return n;
-            }
-            const value = await f(n.value);
-            return {
-                done: n.done,
-                value,
-            };
-        },
-        async throw(e) {
-            const n = await coll.throw(e);
-            if (n.done) {
-                return n;
-            }
-            const value = await f(n.value);
-            return {
-                done: n.done,
-                value,
-            };
-        },
-        [Symbol.asyncIterator]() {
-            return null;
-        },
-    };
+const flattenChildren = async function* (mapped) {
+    // get initial values
+    const values = await Promise.all(mapped.map((child) => Array.isArray(child)
+        ? Promise.resolve(child)
+        : child.next().then((n) => (n.done ? [] : n.value))));
+    yield values.flat();
+    const nexts = mapped.map((child, i) => Array.isArray(child) ? null : child.next().then((n) => [n, i]));
+    do {
+        const [next, i] = await Promise.race(nexts.filter(notNull));
+        values[i] = next.done ? [] : next.value;
+        yield values.flat();
+        nexts[i] = next.done
+            ? null
+            : mapped[i].next().then((n) => [n, i]);
+    } while (true);
 };
-const genFlatten = (coll) => (async function* () {
-    let items = (await coll.next())
-        .value;
-    let gens = items.filter((x) => isAsyncGenerator(x));
-    let values = await Promise.all(gens.map((gen) => gen.next().then((x) => x.value)));
-    const getYield = () => {
-        const r = [];
-        let i = 0;
-        for (const item of items) {
-            if (isAsyncGenerator(item)) {
-                r.push(...values[i]);
-                i++;
-            }
-            else {
-                r.push(item);
-            }
-        }
-        return r;
-    };
-    yield getYield();
-    while (true) {
-        const [n, i] = await Promise.race([coll, ...gens].map((g, i) => g.next().then((n) => [n, i])));
-        if (i === 0) {
-            if (n.done) {
-                break;
-            }
-            items = n.value;
-            gens = items.filter(isAsyncGenerator);
-            values = await Promise.all(gens.map((gen) => gen.next().then((x) => x.value)));
-        }
-        else {
-            values[i - 1] = n.done ? [] : n.value;
-        }
-        yield getYield();
-    }
-})();

@@ -1,4 +1,5 @@
 - `[Container, {}, ..children]` when children change?
+- fix error boundary
 - update docs + examples!
 - scrolling while editing
   - virtual scrolling, when scrolling or even scrolling offscreen will edit "state" be remembered?
@@ -31,3 +32,4 @@
 ## Notes
 
 - https://dev.to/robbiegm/design-principles-of-crank-js-and-react-2e6k
+- `["div", {}, ...children]` is like function call, `[Container, {}, ...children]` is like macro call
