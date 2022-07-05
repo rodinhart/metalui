@@ -21,6 +21,9 @@ export const renderǃ = async (markup, context = {}) => {
         }
         return r;
     }, { ...context });
+    if (tag === "svg") {
+        newContext.$namespace = "http://www.w3.org/2000/svg";
+    }
     // ["tag", {}, ...]
     if (typeof tag === "string") {
         const mapped = [];
@@ -37,7 +40,9 @@ export const renderǃ = async (markup, context = {}) => {
             }
             return flattenChildren(mapped);
         }
-        const node = document.createElement(tag);
+        const node = !newContext.$namespace
+            ? document.createElement(tag)
+            : document.createElementNS(newContext.$namespace, tag);
         for (const [key, value] of Object.entries(props)) {
             if (key.startsWith("on")) {
                 node.addEventListener(key.substring(2), value);
