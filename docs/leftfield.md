@@ -40,7 +40,7 @@ const helloworld = result + addition
 // do something with helloworld
 ```
 
-Clearly the code now at least _looks_ sequential. It isn't entirely clear (to me) whether this is just syntactic sugar, and this is transformed to closures, or the runtime actually captures the program state somehow, to be restored later on.
+Clearly the code now at least _looks_ sequential. It isn't entirely clear (to me) whether this is just syntactic sugar, and this is transformed to closures, or the runtime actually captures the program state somehow, to be restored later on. In either case, because async is contaminating, sometimes a small change requires going up the call chain and making everything async.
 
 ### non-blocking polling
 
