@@ -14,12 +14,33 @@ JavaScript is an event-driven language, which essentially means you set up your 
 When certain operations, like IO, are performed where the runtime has to wait for a result, non-blocking means the program ends execution, and is called back when the result is ready. If any state needs to be carried across, it is up to the programmer to arrange this. Mostly this is done using closures.
 
 ```js
+// some program state
 const filename = "hello.txt"
-let hello
+const addition = "World"
+
 readFile(filename, (result) => {
-  hello = result
+  const helloworld = result + addition
+  
+  // do something with helloworld
 })
 ```
+
+In the above example the callback handler closes over some program state (`addition`).
+
+Most languages now provide contructs to make callback more palatable.
+
+```js
+// some program state
+const filename = "hello.txt"
+const addition = "World"
+
+const result = await readFile(filename)
+const helloworld = result + addition
+
+// do something with helloworld
+```
+
+Clearly the code now at least _looks_ sequential. It isn't entirely clear (to me) whether this is just syntactic sugar, and this is transformed to closures, or the runtime actually captures the program state somehow, to be restored later on.
 
 ### non-blocking polling
 
