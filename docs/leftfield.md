@@ -6,7 +6,7 @@ More useful than single threading might be to call it single program state. Ther
 
 ```txt
 on event
-  await IO
+  do await IO
 ```
 
 JavaScript is an event-driven language, which essentially means you set up your application after which it sits there listening for events. Your program isn't running as such, but it can be called back through as many endpoints as there are event types. One consequence is that the resulting code structure is somewhat dictated by the structure of the events. In particular, the code won't read sequentially and some work is needed to share state.
@@ -25,7 +25,7 @@ readFile(filename, (result) => {
 })
 ```
 
-In the above example the callback handler closes over some program state (`addition`).
+In the above example the callback handler closes over some program state (`addition`). Also, when doing something with `helloworld` we are now (at least) nested one level.
 
 Most languages now provide contructs to make callback more palatable.
 
@@ -44,14 +44,19 @@ Clearly the code now at least _looks_ sequential. It isn't entirely clear (to me
 
 ### non-blocking polling
 
+Instead of adding handlers to various events, we could imagine a system where we explicitly poll for events.
+
 ```txt
 while not quit
   await poll event
-  if event await IO
+  if event do await IO
 ```
 
+There is now more control over when and how events are handled, the code can be structured any way we like. We know for instance we are handling only one event at a time. This could be a disadvantage as we might be blocking the user. It could be an advantage as we might batch event handling, or only debounce event, thus reduce CPU load.
 
+### blocking polling
 
+Now that our code is sequential, and we don't rely on switching program state, we can imagine a blocking version.
 
 ```txt
 while not quit
@@ -59,5 +64,4 @@ while not quit
   on event do IO
 ```
 
-```txt
-```
+Both polling and performing IO blocks execution, the program just waits until the result is ready. Of course, that means some other process is doing some work. Blocking implies multitasking at a lower level, perhaps in the runtime or even on the OS or hardware level.
